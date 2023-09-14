@@ -11,8 +11,16 @@ class Humanoid_Action_Bank(SC.HumanoidAction):
         self.init_2()
         self.stand()
         self.checkfunc=NoInterrupt
-        self.saved_states=[]*9
-
+        self.saved_states=[[0,0,0,  0,0,0,  6,0,0,0,-5,  6,0,0,0,-5] for i in range(9)]
+        self.walk_points=[
+                            [0,0,0,    0,0,0,    6,-10,0,0,0,      6,0,0,0,0],
+                            [0,0,0,    0,0,0,    6,0,0,0,-17,    6,0,0,0,13],
+                            [0,0,0,    0,0,0,    6,0,0,0,-17,    6,-10,0,10,10],
+                            [0,0,0,    0,0,0,    6,0,0,0,0,      6,-10,0,0,0],
+                            [0,0,0,    0,0,0,    6,0,0,0,13,    6,0,0,0,-17],
+                            [0,0,0,    0,0,0,    6,-10,0,10,10,     6,0,0,0,-17]
+                        ]
+        self.walkcount=0
 
     def init_2(self):
         SC.Right_Shoulder_UpDown.motor_init(0,597,2294)#done
@@ -96,7 +104,23 @@ class Humanoid_Action_Bank(SC.HumanoidAction):
         stop_walk=self.slow(point,steps=30)
         return 1
     def Run_Preset(self):
-        
+        for each in self.saved_states:
+            if(self.slow(each)):
+                return
+
+    def set_Preset(self,pin):
+        self.saved_states[pin-1]=copy.deepcopy(SC.cur_angle.get_angle())
+
+    def _front(self):
+        self.slow(self.walk_points[self.walkcount])
+        self.walkcount=(self.walkcount+1)%len(self.walk_points)
+    def _back(self):
+        self.slow(self.walk_points[self.walkcount])
+        self.walkcount=(self.walkcount-1)
+        if self.walkcount<0:
+            self.walkcount=len(self.walk_points)-1
+    
+
 
 class Flags:
     def init(self,stdscr):
@@ -114,5 +138,16 @@ class Flags:
         
         self.stdscr.addstr(37,0,str(returnedflag))
         return returnedflag
+
+    def onCommand(self):
+        self.stdscr.timeout(-1)
+        key=self.stdscr.getch()
+        if(key!=self.command_key):
+            return True
+        return False
+
+    def set_Command_Key(self,key):
+        self.command_key=key
+
 
 flag=Flags()

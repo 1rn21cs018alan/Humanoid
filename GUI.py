@@ -368,6 +368,17 @@ def main(stdscr):
         elif key == ord('x'):
             curses.endwin()
             return
+        elif key>ord('0') and key<=ord('9'):
+            stdscr.addstr(36, 0, " Set Preset  ")
+            actions.set_Preset(key-ord('0'))
+        elif key==ord('l'):
+            stdscr.addstr(36, 0, " Run Preset ")
+            actions.checkfunc=humanoid_actions.flag.Interrupt
+            actions.Run_Preset()
+            actions.checkfunc=humanoid_actions.NoInterrupt
+            stdscr.timeout(-1)
+        elif key==ord('m'):
+            joystick_mode(stdscr)
         motor_cur(stdscr,current_motor)
         stdscr.refresh()
 
@@ -395,8 +406,32 @@ def show_message_screen(stdscr,message):
 
 
 def setZero():
-    zeroing=SC.HumanoidAction()
-    zeroing.slow_action(initialpos=deepcopy(SC.cur_angle.get_angle()),finalpos=[0,0,0, 0,0,0, 0,0,0,0,0, 0,0,0,0,0],steps=50,deltime=10)
+    actions.slow([0,0,0, 0,0,0, 6,0,0,0,-5, 6,0,0,0,-5],steps=15)
+
+def joystick_mode(stdscr):
+    stdscr.clear()
+    motor_bg(stdscr)
+    stdscr.addstr(10,60,"                            ",curses.color_pair(3))
+    stdscr.addstr(11,60,"                            ",curses.color_pair(3))
+    stdscr.addstr(12,60,"       Joystick Mode        ",curses.color_pair(3))
+    stdscr.addstr(13,60,"                            ",curses.color_pair(3))
+    stdscr.addstr(14,60,"                            ",curses.color_pair(3))
+    run_flag=True
+    while run_flag: 
+        curses.flushinp()
+        key=stdscr.getch()
+        sleep(0.05)
+        
+        if key == ord('w'): # type: ignore
+            actions._front()
+        elif key == ord('s'): # type: ignore
+            actions._back()
+        elif key==ord('x'):
+            stdscr.clear()
+            motor_bg(stdscr)
+            return
+
+
 
 # this function is to be called to start GUI Program
 # Press X to stop the program
@@ -408,3 +443,4 @@ def start_gui(passed_actions):
     actions=humanoid_actions.Humanoid_Action_Bank()
     actions.start()
     wrapper(main)
+
