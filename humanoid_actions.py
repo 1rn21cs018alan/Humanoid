@@ -20,6 +20,27 @@ class Humanoid_Action_Bank(SC.HumanoidAction):
                             [30, 0.0, 0.0, -10, 0.0, 0.0, 6.0, 0.0, 0.0, 0.0, 13.0, 6.0, 0.0, 0.0, 0.0, -17.0],
                             [15, 0.0, 0.0, -15, 0.0, 0.0, 6.0, -10.0, 0.0, 10.0, 10.0, 6.0, 0.0, 0.0, 0.0, -17.0]
                         ]
+        '''
+        self.walk_points=[  #Squat
+                            [120, 0, 0.0, 115, 0, 0.0, 6.0, 50.0, -10.0, -45.0, -5.0, 6.0, 55.0, 0.0, -45.0, -5.0],
+                            [90, 0.0, 0.0, 90, 0.0, 0.0, 6.0, 0.0, 0.0, 0.0, -5.0, 6.0, 0.0, 0.0, 0.0, -5.0],
+                            [120, 0, 0.0, 115, 0, 0.0, 6.0, 50.0, -10.0, -45.0, -5.0, 6.0, 55.0, 0.0, -45.0, -5.0],
+                            [90, 0.0, 0.0, 90, 0.0, 0.0, 6.0, 0.0, 0.0, 0.0, -5.0, 6.0, 0.0, 0.0, 0.0, -5.0],
+                            [120, 0, 0.0, 115, 0, 0.0, 6.0, 50.0, -10.0, -45.0, -5.0, 6.0, 55.0, 0.0, -45.0, -5.0],
+                            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.0, 0.0, 0.0, 0.0, -5.0, 6.0, 0.0, 0.0, 0.0, -5.0],
+                            #Bow
+                            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.0, 0.0, 0.0, 0.0, -5.0, 6.0, 0.0, 0.0, 0.0, -5.0],
+                            [-45, 0.0, 0.0, -38, 0.0, 0.0, 6.0, 60, -5, -25, -5.0, 6.0, 60, 0, -30, -5.0],
+                            [-15, 0.0, 0.0, -13, 0.0, 0.0, 6.0, 40, -5, -30, -5.0, 6.0, 40, 0, -30, -5.0],
+                            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.0, 0.0, 0.0, 0.0, -5.0, 6.0, 0.0, 0.0, 0.0, -5.0],
+                            #Dabb
+                            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.0, 0.0, 0.0, 0.0, -5.0, 6.0, 0.0, 0.0, 0.0, -5.0],
+                            [80, 0.0, 83, 0.0, 125, 0.0, 6.0, 10, 0.0, 0.0, -5.0, 6.0, 10, 0.0, 0.0, -5.0],
+                            [0.0, 130, 0.0, 90, 0.0, 80, 6.0, 5, 0.0, 0.0, -5.0, -2, 10, 0.0, 0.0, -5.0],
+                            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.0, 10, 0.0, 0.0, -5.0, 6.0, 10, 0.0, 0.0, -5.0],
+                            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.0, 0.0, 0.0, 0.0, -5.0, 6.0, 0.0, 0.0, 0.0, -5.0]
+                        ]'''
+                
         self.turn_points=[
                             [0,0,0,    0,0,0,    6,-10,0,0,0,      6,0,0,0,0],
                             [0,0,0,    0,0,0,    6,0,0,0,-17,    6,0,0,0,13],
@@ -61,6 +82,7 @@ class Humanoid_Action_Bank(SC.HumanoidAction):
     def slow_action(self,initialpos:list,finalpos:list,deltime=500,steps=6):
         n=int(steps)
         for i in range(1,n+1):
+            # <Motor> . <move to exact Degree function> ( <next step's angle calculation> )
             SC.Right_Shoulder_UpDown.turn_absolute(initialpos[0] -(initialpos[0]-finalpos[0])*i/n)
             SC.Right_Shoulder_Sideways.turn_absolute(initialpos[1] -(initialpos[1]-finalpos[1])*i/n)
             SC.Left_Shoulder_UpDown.turn_absolute(initialpos[3] -(initialpos[3]-finalpos[3])*i/n)
@@ -117,17 +139,35 @@ class Humanoid_Action_Bank(SC.HumanoidAction):
             return 2
         stop_walk=self.slow(point,steps=30)
         return 1
+        
     def Run_Preset(self):
-        for each in self.saved_states:
-            if(self.slow(each)):
-                return
+        while(True):
+            for each in self.saved_states:
+                if(self.slow(each,steps=80)):
+                    return
 
     def set_Preset(self,pin):
         self.saved_states[pin-1]=copy.deepcopy(SC.cur_angle.get_angle())
 
+    def load_preset(self,path):
+        self.saved_states=[]
+        with open(path,mode="r") as f:
+            for each in f.readlines():
+                angles=[0]*16
+                index_angles=0
+                temp=''
+                for character in each:
+                    if(character.isdigit() or character=='.'):
+                        temp+=character
+                    elif (temp!=''):
+                        angles[index_angles]=float(temp)
+                        index_angles+=1
+                        temp=''
+                self.saved_states.append(angles)
+
     def _front(self):
         self.walkcount=(self.walkcount+1)%len(self.walk_points)
-        self.slow(self.walk_points[self.walkcount],steps=50//self.joystick_speed)
+        self.slow(self.walk_points[self.walkcount],steps=50//self.joystick_speed) #old value: steps=50 new steps=85
     def _back(self):
         self.walkcount=(self.walkcount-1)
         self.slow(self.walk_points[self.walkcount],steps=30//self.joystick_speed)

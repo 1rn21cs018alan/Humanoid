@@ -81,16 +81,16 @@ class HumanoidMovement(SC.HumanoidAction):
 		step1=[  0,0,0,    0,0,0,    5,0,0,0,-17,    5,0,0,0,15]
 		self.slow(step1,steps=50)
 		print("point1")
-#		step=[  0,0,0,    0,0,0,    10,30,0,-30,-5,    0,0,0,0,15  ]
-#		self.slow(step,steps=50)
-#		print("point2")
+		# step=[  0,0,0,    0,0,0,    10,30,0,-30,-5,    0,0,0,0,15  ]
+		# self.slow(step,steps=50)
+		# print("point2")
 		step=[  0,0,0,    0,0,0,    10,30,0,-30,-5,    0,0,0,0,15  ]
 		self.slow(step,steps=50)
 		print("point2")
 		step3=[  0,15,0,    0,0,0,    10,20,0,-20,-5,    0,-30,0,7,13 ]
 		self.slow(step3,steps=50)
 		print('point3')
-#		delay(1000)
+		# delay(1000)
 		step4=[ 0,30,0,    0,0,0,    10,20,0,-20,-5,      0,-30,0,7,13]
 		self.slow(step4,steps=50)
 		print("point4")
@@ -98,7 +98,7 @@ class HumanoidMovement(SC.HumanoidAction):
 		step5=[ 0,15,0,    0,0,0,    15,23,0,-30,0,      0,-25,0,7,13]
 		self.slow(step5,steps=20)
 		print("point5")
-#		delay(1000)
+		# delay(1000)
 		step6=[ 0,15,0,    0,0,0,    15,23,15,-30,0,      0,-25,0,7,13]
 		self.slow(step6,steps=20)
 		print("point6")
@@ -273,7 +273,7 @@ def adjust_mode():
 			angles.append((temp_num,int(i)))
 			temp_num+=1
 		print(angles)
-#		print([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15])
+		#print([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15])
 		pin_num=2
 		try:
 			pin_string=(input("Enter Pin number:"))
@@ -384,16 +384,16 @@ elif mode==7:
 
 	adjust_mode()
 	
-########[  0,0,0,    0,0,0,    5,40,30,-20,-5,    5,0,0,0,-5  ]
+	########[  0,0,0,    0,0,0,    5,40,30,-20,-5,    5,0,0,0,-5  ]
 
 
-#[  0,0,0,    0,0,0,    5,40,30,-20,-5,    5,0  ,0,0 ,-5     ]
-#[  0,0,0,    0,0,0,    5,40,30,-10,-5,    5,-30,0,30,-5  ]
-#[  0,0,0,    0,0,0,    5,0,0,-10,-5,      5,60,40,-30,-5     ]
-#[  0,0,0,    0,0,0,    5,0,0,-10,-5,      5,60,90,-30,-5     ]
+	#[  0,0,0,    0,0,0,    5,40,30,-20,-5,    5,0  ,0,0 ,-5     ]
+	#[  0,0,0,    0,0,0,    5,40,30,-10,-5,    5,-30,0,30,-5  ]
+	#[  0,0,0,    0,0,0,    5,0,0,-10,-5,      5,60,40,-30,-5     ]
+	#[  0,0,0,    0,0,0,    5,0,0,-10,-5,      5,60,90,-30,-5     ]
 
 
-#[  0,0,0,    0,0,0,    5,0 ,0 ,-10,-5,    5,40,40,0,-5   ]
+	#[  0,0,0,    0,0,0,    5,0 ,0 ,-10,-5,    5,40,40,0,-5   ]
 
 elif mode==8:
 	flag_here=True
@@ -432,7 +432,7 @@ elif mode==12:
 	for i in range(0):
 		actions.walk5()
 		#actions.walk6()
-	#adjust_mode()
+	# adjust_mode()
 	GUI.start_gui(actions)
 	
 print(SC.cur_angle.get_angle())
