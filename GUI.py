@@ -3,6 +3,7 @@ import Servo_Control as SC
 from curses import wrapper # type: ignore
 from time import sleep
 from copy import deepcopy
+import humanoid_actions
 
 actions=None
 # this function calls Servo_Control to increase  the angle of the motors
@@ -322,6 +323,7 @@ def motor_cur(stdscr,num):
 
 # contains the running code of GUI
 def main(stdscr):
+    humanoid_actions.flag.init(stdscr)
     stdscr.clear()
     curses.init_pair(1,curses.COLOR_RED,curses.COLOR_WHITE) # type: ignore
     curses.init_pair(2,curses.COLOR_RED,curses.COLOR_CYAN) # type: ignore
@@ -364,20 +366,22 @@ def main(stdscr):
         elif key == ord('p'):
             show_message_screen(stdscr,'walking')
         elif key == ord('x'):
-            exit(0)
+            curses.endwin()
+            return
         motor_cur(stdscr,current_motor)
         stdscr.refresh()
 
 
 def show_message_screen(stdscr,message):
     global actions
+    actions.checkfunc=humanoid_actions.flag.Interrupt
     walking_1=0
     stdscr.addstr(0,0,"   Walking... No input can taken until walking stops",curses.color_pair(3))
     stdscr.timeout(50)
     curses.flushinp()
     for i in range(10):
         key=stdscr.getch()
-        walking_1=actions.walk4(walking_1) 
+        walking_1=actions.walk(walking_1) 
         if key== ord('p'):
             break
     
@@ -385,8 +389,9 @@ def show_message_screen(stdscr,message):
     motor_bg(stdscr)
     stdscr.addstr(0,0,"   Walking stoped\t\t\t\t",curses.color_pair(3))
     stdscr.timeout(-1)
+    actions.checkfunc=humanoid_actions.NoInterrupt
+    setZero()
     return
-
 
 
 def setZero():
@@ -400,5 +405,6 @@ def setZero():
 # N to save current angles of motors into a file
 def start_gui(passed_actions):
     global actions
-    actions=passed_actions
+    actions=humanoid_actions.Humanoid_Action_Bank()
+    actions.start()
     wrapper(main)
