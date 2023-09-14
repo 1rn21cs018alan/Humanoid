@@ -273,7 +273,7 @@ class HumanoidAction():
     # turns the humanoid from one position to the other but with multiple steps in between
     # this effectively slows down the motor's motion
     def slow_action(self,initialpos:list,finalpos:list,deltime=500,steps=6):
-        n=steps
+        n=int(steps)
         for i in range(1,n+1):
             Right_Shoulder_UpDown.turn_absolute(initialpos[0] -(initialpos[0]-finalpos[0])*i/n)
             Right_Shoulder_Sideways.turn_absolute(initialpos[1] -(initialpos[1]-finalpos[1])*i/n)

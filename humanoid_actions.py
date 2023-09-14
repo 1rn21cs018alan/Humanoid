@@ -13,14 +13,28 @@ class Humanoid_Action_Bank(SC.HumanoidAction):
         self.checkfunc=NoInterrupt
         self.saved_states=[[0,0,0,  0,0,0,  6,0,0,0,-5,  6,0,0,0,-5] for i in range(9)]
         self.walk_points=[
+                            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.0, 0.0, 0.0, 0.0, -5.0, 6.0, 0.0, 0.0, 0.0, -5.0],
+                            [-15, 0.0, 0.0, 25, 0.0, 0.0, 6.0, 0.0, 0.0, 0.0, -17.0, 6.0, 0.0, 0.0, 0.0, 13.0],
+                            [-10, 0, 0.0, 15, 0.0, 0.0, 6.0, 0.0, 0.0, 0.0, -17.0, 6.0, -10.0, 0.0, 10.0, 10.0],
+                            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.0, 0.0, 0.0, 0.0, 0.0, 6.0, -10.0, 0.0, 0.0, 0.0],
+                            [30, 0.0, 0.0, -10, 0.0, 0.0, 6.0, 0.0, 0.0, 0.0, 13.0, 6.0, 0.0, 0.0, 0.0, -17.0],
+                            [15, 0.0, 0.0, -15, 0.0, 0.0, 6.0, -10.0, 0.0, 10.0, 10.0, 6.0, 0.0, 0.0, 0.0, -17.0]
+                        ]
+        self.turn_points=[
                             [0,0,0,    0,0,0,    6,-10,0,0,0,      6,0,0,0,0],
                             [0,0,0,    0,0,0,    6,0,0,0,-17,    6,0,0,0,13],
                             [0,0,0,    0,0,0,    6,0,0,0,-17,    6,-10,0,10,10],
                             [0,0,0,    0,0,0,    6,0,0,0,0,      6,-10,0,0,0],
+                            [0,0,0,  0,0,0,  6,0,0,0,-5,  6,0,0,0,-5],
+                            [0,0,0,    0,0,0,      6,0,0,0,0,    6,-10,0,0,0],
                             [0,0,0,    0,0,0,    6,0,0,0,13,    6,0,0,0,-17],
-                            [0,0,0,    0,0,0,    6,-10,0,10,10,     6,0,0,0,-17]
-                        ]
+                            [0,0,0,    0,0,0,    6,-10,0,10,10,    6,0,0,0,-17],
+                            [0,0,0,    0,0,0,      6,-10,0,0,0,    6,0,0,0,0],
+                            [0,0,0,  0,0,0,  6,0,0,0,-5,  6,0,0,0,-5],
+            
+        ]
         self.walkcount=0
+        self.joystick_speed=2
 
     def init_2(self):
         SC.Right_Shoulder_UpDown.motor_init(0,597,2294)#done
@@ -45,7 +59,7 @@ class Humanoid_Action_Bank(SC.HumanoidAction):
         SC.Left_Ankle_Sideways.motor_init(15,616,2440)#done
 
     def slow_action(self,initialpos:list,finalpos:list,deltime=500,steps=6):
-        n=steps
+        n=int(steps)
         for i in range(1,n+1):
             SC.Right_Shoulder_UpDown.turn_absolute(initialpos[0] -(initialpos[0]-finalpos[0])*i/n)
             SC.Right_Shoulder_Sideways.turn_absolute(initialpos[1] -(initialpos[1]-finalpos[1])*i/n)
@@ -112,13 +126,23 @@ class Humanoid_Action_Bank(SC.HumanoidAction):
         self.saved_states[pin-1]=copy.deepcopy(SC.cur_angle.get_angle())
 
     def _front(self):
-        self.slow(self.walk_points[self.walkcount])
         self.walkcount=(self.walkcount+1)%len(self.walk_points)
+        self.slow(self.walk_points[self.walkcount],steps=50//self.joystick_speed)
     def _back(self):
-        self.slow(self.walk_points[self.walkcount])
         self.walkcount=(self.walkcount-1)
+        self.slow(self.walk_points[self.walkcount],steps=30//self.joystick_speed)
         if self.walkcount<0:
             self.walkcount=len(self.walk_points)-1
+    def _left(self):
+        for each in self.turn_points[:5]:
+            self.slow(each,steps=20//self.joystick_speed)
+    def _right(self):
+        for each in self.turn_points[5:]:
+            self.slow(each,steps=20//self.joystick_speed)    
+    def get_SavedState(self):
+        return copy.deepcopy(self.saved_states)
+
+        
     
 
 
@@ -148,6 +172,7 @@ class Flags:
 
     def set_Command_Key(self,key):
         self.command_key=key
+
 
 
 flag=Flags()

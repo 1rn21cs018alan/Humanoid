@@ -104,10 +104,16 @@ def direc(motor:int,direction:int) ->int:
     return int(connection[motor][direction])
 """
         directions meaning
-
+        0,1,2,3 refer to indexes of a single element in the above function
+        The Value at each index equates to which motor
+            to move to when navigating GUI
+            
                 0-UP
         3-RIGHT      1-LEFT
                2-DOWN
+               
+        eg: [4,3,5,4] means move to MOTOR4 when pressing up or right,
+                MOTOR3 when pressing left, MOTOR5 when pressing down
 
         arrangement of motors(back facing camera)
             4   3   0   1
@@ -119,9 +125,50 @@ def direc(motor:int,direction:int) ->int:
                 15  10
 """
 
+#this is just to print out the controls
+def print_control_keys(stdscr,mode='normal'):
+    info=["X=Exit"]
+    mode=mode.lower()
+    if(mode=='normal'):
+        info=[
+        "X=Exit Mode/Program",
+        "P=Start Walking",
+        "O=Stop Walking",
+        "W=Choose Motor:Up",
+        "A=Choose Motor:Left",
+        "S=Choose Motor:Down",
+        "D=Choose Motor:Right",
+        "M=Enter Joystick Mode",
+        "UP/DOWN=Motor Angle",
+        "0=Return to Default State",
+        "N=Save Current Angles in file",
+        "1~9=Set Preset Position 1~9",
+        "L=Play Preset Potions 1->9"
+        ]
+    elif(mode=="joystick"):
+        info=[
+            "X=Exit Joystick Mode",
+            "W=Move Front",
+            "A=Move Left",
+            "S=Move Back",
+            "D=Move Right"
+        ]
+        
+    
+    screen_height,screen_width=stdscr.getmaxyx()
+    x_offset=-2
+    y_offset=3
+    info_width=30
+    for each in info:
+        info_width=max(info_width,len(each))
+    for each in info:
+        stdscr.addstr(y_offset,x_offset+screen_width-info_width,"  "+each+(" "*(info_width-len(each))),curses.color_pair(4))
+        y_offset+=1
+
 
 #This function prints a white robot shape in background
 def motor_bg(stdscr):
+    print_control_keys(stdscr,mode='normal')
     spacing=0
     linespace=0
     stdscr.addstr(spacing+1,10+linespace*8,"       ",curses.color_pair(1)) # type: ignore
@@ -201,11 +248,13 @@ def motor_bg(stdscr):
     stdscr.addstr(spacing+3,10+linespace*8,"       ",curses.color_pair(1)) # type: ignore
 
 
+
+
 #this function makes the motor attacked to pin number 'num' to turn cyan in GUI
 # this is to show the currently selected motor
 def motor_cur(stdscr,num):
     spacing=0
-
+    
     if(num==4):
         linespace=0
         stdscr.addstr(spacing+1,10+linespace*8,"       ",curses.color_pair(2)) # type: ignore
@@ -328,6 +377,7 @@ def main(stdscr):
     curses.init_pair(1,curses.COLOR_RED,curses.COLOR_WHITE) # type: ignore
     curses.init_pair(2,curses.COLOR_RED,curses.COLOR_CYAN) # type: ignore
     curses.init_pair(3,curses.COLOR_RED,curses.COLOR_GREEN) # type: ignore
+    curses.init_pair(4,curses.COLOR_BLACK,curses.COLOR_WHITE) # type: ignore
     current_motor=4
     motor_bg(stdscr)
     motor_cur(stdscr,current_motor)
@@ -361,8 +411,12 @@ def main(stdscr):
         elif key == ord('0'):
             setZero()
         elif key == ord('n'):
-            with open("save_data.txt",mode="a") as f:
-                f.write("\n"+str(SC.cur_angle.get_angle()))
+            with open("Downloads/New/save_data.txt",mode="a") as f:
+                f.write("\n"+str(SC.cur_angle.get_angle())+",")
+            with open("Downloads/New/Presets.txt",mode="w+") as f:
+                temp=actions.get_SavedState()
+                for line in temp:
+                    f.write("\n"+str(line))
         elif key == ord('p'):
             show_message_screen(stdscr,'walking')
         elif key == ord('x'):
@@ -426,7 +480,12 @@ def joystick_mode(stdscr):
             actions._front()
         elif key == ord('s'): # type: ignore
             actions._back()
+        elif key == ord('a'):
+            actions._left()
+        elif key == ord('d'):
+            actions._right()
         elif key==ord('x'):
+            actions.walkcount=0
             stdscr.clear()
             motor_bg(stdscr)
             return
