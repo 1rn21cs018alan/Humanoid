@@ -17,3 +17,25 @@ Left_Ankle=14
 Left_Foot=15
 Torso=16
 Head=17
+
+
+Right_Shoulder_Sideways =   0
+Right_Shoulder_UpDown =     1
+Left_Shoulder_Sideways =    3
+Left_Shoulder_UpDown =     4
+
+Right_Wrist =               2
+Left_Wrist =                5
+
+Right_Pelvis_Sideways =     6
+Right_Pelvis_UpDown =       7
+Left_Pelvis_Sideways =      11
+Left_Pelvis_UpDown =        12
+
+Right_Knee =                8
+Left_Knee =                 13
+
+Right_Ankle_Sideways =      9
+Right_Ankle_UpDown =        10
+Left_Ankle_Sideways =       14
+Left_Ankle_UpDown =         15

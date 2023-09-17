@@ -4,7 +4,9 @@ from OpenGL.GLU import *
 import pygame
 from pygame.locals import *
 import math
+import numpy as np
 from __constants import *
+from copy import deepcopy as dc
 def sin(val):
     return math.sin(val*0.01745)
 def cos(val):
@@ -12,6 +14,7 @@ def cos(val):
 
 colors={'red':(1,0,0,1),
         'green':(0,1,0,1),
+        'yellow':(1,1,0,1),
         'dark green':(0,0.5,0,1),
         'light green':(0.5,1,0.5,1),
         'blue':(0,0,1,1),
@@ -35,7 +38,7 @@ class CuboidBlock:
         for i in (-1,1):
             for j in (-1,1):
                 for k in (-1,1):
-                    self.corner.append((i*h,j*w,d*k))
+                    self.corner.append([i*h,j*w,d*k])
         
         self.edges=(
             (0,1),
@@ -57,15 +60,16 @@ class CuboidBlock:
             (0,1,3,2),
             (4,5,7,6),
             (0,1,5,4),
-            (1,3,7,5),
             (2,3,7,6),
+            (1,3,7,5),
             (2,0,4,6),
         )
         self.pos={'x':0,'y':0}
     
     def draw_edge(self,coords=(0,0,0)):
         glBegin(GL_LINES)
-        glColor4fv(colors['red'])
+        current_color=list(colors['red'])
+        glColor4fv(current_color)
         for edge in self.edges:
             for vertex in edge:
                 self.corner[vertex]
@@ -76,13 +80,20 @@ class CuboidBlock:
     
     def draw_surface(self,coords=(0,0,0)):
         glBegin(GL_QUADS)
+        current_color=list(self.color)
+        change=0.05
+        if(current_color==[1,1,1,1]):
+            change=-0.05
         for i in range(len(self.surfaces)):
             surface=self.surfaces[i]
-            glColor4fv(self.color)
+            glColor4fv(current_color)
             for vertex in surface:
                 self.corner[vertex]
                 point=(self.corner[vertex][0]+coords[0], self.corner[vertex][1]+coords[1],self.corner[vertex][2]+coords[2])
                 glVertex3fv(point)
+            current_color[0]+=change
+            current_color[1]+=change
+            current_color[2]+=change
         glColor3fv((0,0,0))
         glEnd()
 
@@ -90,19 +101,123 @@ class CuboidBlock:
 class FreeBlock(CuboidBlock):
     def __init__(self, Height, Width, Depth, color=colors['light grey'],loc=[0,0,0]):
         super().__init__(Height, Width, Depth, color)
-        self.loc=loc
-        self.angle_V=angle
+        self.dimensions=dc(self.corner)
+        self.reset_to_coords(loc)
 
     def draw(self):
-        self.draw_surface(self.loc)
-        self.draw_edge(self.loc)
+        self.draw_surface()
+        self.draw_edge()
     
-    def set_coords(coords):
-        self.loc=coords
+    def reset_to_coords(self,coords):
+        for i in range(len(self.corner)):
+            self.corner[i][0]=self.dimensions[i][0]+coords[0]
+            self.corner[i][1]=self.dimensions[i][1]+coords[1]
+            self.corner[i][2]=self.dimensions[i][2]+coords[2]
     
-    def update_vector(angle):
-        self.angle_v
+    
+    def translate(self,coords):
+        for i in range(len(self.corner)):
+            self.corner[i][0]+=coords[0]
+            self.corner[i][1]+=coords[1]
+            self.corner[i][2]+=coords[2]
+    
+    def rotate(self, axis_start=[0,0,0], axis_end=[0,1,0], angle_degrees=1):
+        # Convert angle to radians
+        angle_radians = np.radians(angle_degrees)
 
+        # Create a vector representing the axis of rotation
+        axis_vector = np.array(axis_end) - np.array(axis_start)
+
+        # Calculate the magnitude of the axis vector
+        axis_magnitude = np.linalg.norm(axis_vector)
+
+        # Normalize the axis vector(get it's unit vector)
+        try:
+            normalized_axis = axis_vector / axis_magnitude
+        except ZeroDivisionError:
+            print("Axis Error")
+            return
+
+        # Create a rotation matrix for rotating about the normalized axis
+        rotation_matrix = np.array([
+            [np.cos(angle_radians) + normalized_axis[0]**2 * (1 - np.cos(angle_radians)), 
+            normalized_axis[0] * normalized_axis[1] * (1 - np.cos(angle_radians)) - normalized_axis[2] * np.sin(angle_radians),
+            normalized_axis[0] * normalized_axis[2] * (1 - np.cos(angle_radians)) + normalized_axis[1] * np.sin(angle_radians)],
+            [normalized_axis[1] * normalized_axis[0] * (1 - np.cos(angle_radians)) + normalized_axis[2] * np.sin(angle_radians),
+            np.cos(angle_radians) + normalized_axis[1]**2 * (1 - np.cos(angle_radians)),
+            normalized_axis[1] * normalized_axis[2] * (1 - np.cos(angle_radians)) - normalized_axis[0] * np.sin(angle_radians)],
+            [normalized_axis[2] * normalized_axis[0] * (1 - np.cos(angle_radians)) - normalized_axis[1] * np.sin(angle_radians),
+            normalized_axis[2] * normalized_axis[1] * (1 - np.cos(angle_radians)) + normalized_axis[0] * np.sin(angle_radians),
+            np.cos(angle_radians) + normalized_axis[2]**2 * (1 - np.cos(angle_radians))]
+        ])
+
+        # Translate the point to the origin (subtract axis_start), Rotate the translated point and undo translation
+        for i in range(len(self.corner)):
+            translated_point = np.array(self.corner[i]) - np.array(axis_start)
+            self.corner[i]= np.dot(rotation_matrix, translated_point)+ np.array(axis_start)
+
+
+class Motor:
+    def __init__(self,i,Block,latch_verticies,offset,default_angle=0) -> None:
+        self.mot=i
+        self.block=Block
+        self.latch_vertex=latch_verticies
+        self.offset=offset
+        self.cur_angle=default_angle
+    def turn_what(self,mot):
+        if(mot==   Right_Shoulder_Sideways):
+            return[  Right_Shoulder,Right_Elbow,Right_Wrist]
+        elif(mot== Right_Shoulder_UpDown):
+            return[  Right_Elbow,Right_Wrist ]
+        elif(mot== Left_Shoulder_Sideways):
+            return[  Left_Shoulder,Left_Elbow,Left_Wrist]
+        elif(mot== Left_Shoulder_UpDown):
+            return[  Left_Elbow,Left_Wrist]
+        elif(mot== Right_Wrist):
+            return[  Right_Wrist]
+        elif(mot== Left_Wrist):
+            return[  Left_Wrist]
+        elif(mot== Right_Pelvis_Sideways):
+            return[  Right_Pelvis,Right_Thigh,Right_Calf,Right_Ankle,Right_Foot ]
+        elif(mot== Right_Pelvis_UpDown):
+            return[  Right_Thigh,Right_Calf,Right_Ankle,Right_Foot ]
+        elif(mot== Right_Knee):
+            return[  Right_Calf,Right_Ankle,Right_Foot ]
+        elif(mot== Right_Ankle_UpDown):
+            return[  Right_Ankle,Right_Foot ]
+        elif(mot== Right_Ankle_Sideways):
+            return[  Right_Foot ]
+        elif(mot== Left_Pelvis_Sideways):
+            return[  Left_Pelvis,Left_Thigh,Left_Calf,Left_Ankle,Left_Foot]
+        elif(mot== Left_Pelvis_UpDown):
+            return[  Left_Thigh,Left_Calf,Left_Ankle,Left_Foot]
+        elif(mot== Left_Knee):
+            return[  Left_Calf,Left_Ankle,Left_Foot]
+        elif(mot== Left_Ankle_UpDown):
+            return[  Left_Ankle,Left_Foot]
+        elif(mot== Left_Ankle_Sideways):
+            return[  Left_Foot]
+        return Head
+    
+    def rotate(self,angle):
+        Block=self.block
+        latch_verticies=self.latch_vertex
+        offset=self.offset
+        p1=Block.corner[latch_verticies[0]]
+        p2=Block.corner[latch_verticies[1]]
+        p3=Block.corner[latch_verticies[2]]
+        p4=Block.corner[latch_verticies[3]]
+        point1=[0]*3
+        point2=[0]*3
+        for j in range(3):
+            point1[j]=((p1[j]-p2[j])*offset)+(p1[j]+p2[j])/2
+            point2[j]=((p3[j]-p4[j])*offset)+(p3[j]+p4[j])/2
+        if(abs(angle-self.cur_angle)<0.5):
+            return
+        motors_to_turn=self.turn_what(self.mot)
+        for each in motors_to_turn:
+            Blocks[each].rotate(axis_start=point1,axis_end=point2,angle_degrees=angle-self.cur_angle)
+        self.cur_angle=angle
 
 
 
@@ -117,8 +232,11 @@ def main():
     gluPerspective(65, (display[0]/display[1]), 0.1, 70.0)
     view_angle=0
     glTranslatef(0,-10,-25)
-    Blocks=[0]*18
-    Blocks[Head]=FreeBlock(1,1,1,loc=[0,15.5,0],color=colors['blue'])
+    Hold_Shift=False
+
+
+
+    Blocks[Head]=FreeBlock(1,1,1,loc=[0,15.5,0],color=colors['yellow'])
     Blocks[Torso]=FreeBlock(4.2,4.2,1,loc=[0,12.8,0])
     
     Blocks[Right_Shoulder]=FreeBlock(1,1.6,1.6,loc=[-2.7,14.6,0],color=colors['dark blue'])
@@ -145,7 +263,41 @@ def main():
     Blocks[Right_Foot]=FreeBlock(3.3,0.5,4,loc=[-1.95, 0.25, 0.5],color=colors['light green'])
     Blocks[Left_Foot] =FreeBlock(3.3,0.5,4,loc=[ 1.95, 0.25, 0.5],color=colors['light green'])
 
+    Motors[Right_Shoulder_UpDown] =    Motor(Right_Shoulder_UpDown   ,Blocks[Right_Elbow   ],[ 7 , 7, 6, 6 ],0               ,45      )
+    Motors[Right_Shoulder_Sideways] =  Motor(Right_Shoulder_Sideways ,Blocks[Right_Shoulder],[ 1 , 2, 5, 6 ],0               ,83      )
+    Motors[Left_Shoulder_Sideways] =   Motor(Left_Shoulder_Sideways  ,Blocks[Left_Shoulder ],[ 1 , 2, 5, 6 ],0               ,130     )
+    Motors[Left_Shoulder_UpDown] =     Motor(Left_Shoulder_UpDown    ,Blocks[Left_Elbow    ],[ 2 , 2, 3, 3 ],0               ,0       )
+    Motors[Right_Wrist] =              Motor(Right_Wrist             ,Blocks[Right_Wrist   ],[ 2 , 6, 3, 7 ],0               ,20      )
+    Motors[Left_Wrist] =               Motor(Left_Wrist              ,Blocks[Left_Wrist    ],[ 2 , 6, 3, 7 ],0               ,85      )
+    Motors[Right_Pelvis_Sideways] =    Motor(Right_Pelvis_Sideways   ,Blocks[Right_Pelvis  ],[ 2 , 6, 3, 7 ],0               ,154     )
+    Motors[Right_Pelvis_UpDown] =      Motor(Right_Pelvis_UpDown     ,Blocks[Right_Thigh   ],[ 6 , 7, 2 ,3 ],0               ,82      )
+    Motors[Left_Pelvis_Sideways] =     Motor(Left_Pelvis_Sideways    ,Blocks[Left_Pelvis   ],[ 2 , 6, 3, 7 ],0               ,0       )
+    Motors[Left_Pelvis_UpDown] =       Motor(Left_Pelvis_UpDown      ,Blocks[Left_Thigh    ],[ 6 , 7, 2 ,3 ],0               ,78        )
+    Motors[Right_Knee] =               Motor(Right_Knee              ,Blocks[Right_Calf    ],[ 6 , 7, 2 ,3 ],0               ,8     )
+    Motors[Left_Knee] =                Motor(Left_Knee               ,Blocks[Left_Calf     ],[ 6 , 7, 2 ,3 ],0               ,90     )
+    Motors[Right_Ankle_Sideways] =     Motor(Right_Ankle_Sideways    ,Blocks[Right_Foot    ],[ 2 , 6, 3, 7 ],-0.22           ,170     )
+    Motors[Right_Ankle_UpDown] =       Motor(Right_Ankle_UpDown      ,Blocks[Right_Ankle   ],[ 6 , 7, 2 ,3 ],0               ,80     )
+    Motors[Left_Ankle_Sideways] =      Motor(Left_Ankle_Sideways     ,Blocks[Left_Foot     ],[ 2 , 6, 3, 7 ],0.22            ,90     )
+    Motors[Left_Ankle_UpDown] =        Motor(Left_Ankle_UpDown       ,Blocks[Left_Ankle    ],[ 6 , 7, 2 ,3 ],0               ,88     )
+    
+    Motors[Right_Shoulder_UpDown                      ].rotate(45)
+    Motors[Right_Shoulder_Sideways                    ].rotate(83)
+    Motors[Right_Wrist                                ].rotate(20)
+    Motors[Left_Shoulder_Sideways                     ].rotate(130)
+    Motors[Left_Shoulder_UpDown                       ].rotate(0)
+    Motors[Left_Wrist                                 ].rotate(85)
+    Motors[Right_Pelvis_Sideways                      ].rotate(154)
+    Motors[Right_Pelvis_UpDown                        ].rotate(82)
+    Motors[Right_Knee                                 ].rotate(8)
+    Motors[Right_Ankle_UpDown                         ].rotate(80)
+    Motors[Right_Ankle_Sideways                       ].rotate(170)
+    Motors[Left_Pelvis_Sideways                       ].rotate(0)
+    Motors[Left_Pelvis_UpDown                         ].rotate(78)
+    Motors[Left_Knee                                  ].rotate(90)
+    Motors[Left_Ankle_UpDown                          ].rotate(88)
+    Motors[Left_Ankle_Sideways                        ].rotate(90)
 
+    rot_angle=0#to be deleted
     while True:
         for event in pygame.event.get():
             if event.type==pygame.KEYDOWN:
@@ -161,23 +313,28 @@ def main():
                 glRotatef(0.1*mouseMove[0],0,1,0)
                 view_angle+=0.1*mouseMove[0]
         key= pygame.key.get_pressed()
-        if(key[pygame.K_RSHIFT] or key[pygame.K_LSHIFT] or True):
+        if(not Hold_Shift or (Hold_Shift and ( key[pygame.K_RSHIFT] or key[pygame.K_LSHIFT]))):
             if(key[pygame.K_w]):
                 glTranslatef(-0.2*sin(view_angle),0,0.2*cos(view_angle))
             elif(key[pygame.K_s]):
                 glTranslatef(0.2*sin(view_angle),0,-0.2*cos(view_angle))
 
-            if(key[pygame.K_q]):
+            if(key[pygame.K_q] or key[pygame.K_SPACE] or key[13] or key[10]):
                 glTranslatef(0,-0.2,0)
-            elif(key[pygame.K_e]):
+            elif(key[pygame.K_e]or (not Hold_Shift and ( key[pygame.K_RSHIFT] or key[pygame.K_LSHIFT]))):
                 glTranslatef(0,0.2,0)
 
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
+        Blocks[Head].rotate()#to be deleted
+        # Motors[Right_Shoulder_UpDown].rotate(rot_angle)#to be deleted
+        # rot_angle=(rot_angle+0.5)%90
+        # print(rot_angle)
         for each in Blocks:
             each.draw()
-
         pygame.display.flip()
         pygame.time.wait(30)
 
 
+Blocks=[0]*18
+Motors=[0]*16
 main()
