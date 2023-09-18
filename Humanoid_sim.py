@@ -277,22 +277,22 @@ def main():
     Blocks[Right_Foot]=FreeBlock(3.3,0.5,4,loc=[-1.95, 0.25, 0.5],color=colors['light green'])
     Blocks[Left_Foot] =FreeBlock(3.3,0.5,4,loc=[ 1.95, 0.25, 0.5],color=colors['light green'])
 
-    Motors[Right_Shoulder_UpDown] =    Motor(Right_Shoulder_UpDown   ,Blocks[Right_Shoulder],[ 5,  6, 1, 2 ],0               ,45        )#done
-    Motors[Right_Shoulder_Sideways] =  Motor(Right_Shoulder_Sideways ,Blocks[Right_Elbow   ],[ 7 , 7, 6, 6 ],0               ,83        )#done
-    Motors[Left_Shoulder_UpDown] =     Motor(Left_Shoulder_UpDown    ,Blocks[Left_Shoulder ],[ 1 , 2, 5, 6 ],0               ,0         )#done
-    Motors[Left_Shoulder_Sideways] =   Motor(Left_Shoulder_Sideways  ,Blocks[Left_Elbow    ],[ 2 , 2, 3, 3 ],0               ,130       )#done
-    Motors[Right_Wrist] =              Motor(Right_Wrist             ,Blocks[Right_Wrist   ],[ 3 , 7, 2, 6 ],0               ,20        )
-    Motors[Left_Wrist] =               Motor(Left_Wrist              ,Blocks[Left_Wrist    ],[ 3 , 7, 2, 6 ],0               ,85        )
-    Motors[Right_Pelvis_Sideways] =    Motor(Right_Pelvis_Sideways   ,Blocks[Right_Pelvis  ],[ 2 , 6, 3, 7 ],0               ,154       )
-    Motors[Right_Pelvis_UpDown] =      Motor(Right_Pelvis_UpDown     ,Blocks[Right_Thigh   ],[ 2 , 3, 6 ,7 ],0               ,82        )
-    Motors[Left_Pelvis_Sideways] =     Motor(Left_Pelvis_Sideways    ,Blocks[Left_Pelvis   ],[ 2 , 6, 3, 7 ],0               ,0         )
-    Motors[Left_Pelvis_UpDown] =       Motor(Left_Pelvis_UpDown      ,Blocks[Left_Thigh    ],[ 6 , 7, 2 ,3 ],0               ,78        )
-    Motors[Right_Knee] =               Motor(Right_Knee              ,Blocks[Right_Calf    ],[ 6 , 7, 2 ,3 ],0               ,8         )
-    Motors[Left_Knee] =                Motor(Left_Knee               ,Blocks[Left_Calf     ],[ 2 , 3, 6 ,7 ],0               ,90        )
-    Motors[Right_Ankle_Sideways] =     Motor(Right_Ankle_Sideways    ,Blocks[Right_Foot    ],[ 3 , 7, 2, 6 ],-0.22           ,170       )
-    Motors[Right_Ankle_UpDown] =       Motor(Right_Ankle_UpDown      ,Blocks[Right_Ankle   ],[ 2 , 3, 6 ,7 ],0               ,80        )
-    Motors[Left_Ankle_Sideways] =      Motor(Left_Ankle_Sideways     ,Blocks[Left_Foot     ],[ 3 , 7, 2, 6 ],0.22            ,90        )
-    Motors[Left_Ankle_UpDown] =        Motor(Left_Ankle_UpDown       ,Blocks[Left_Ankle    ],[ 6 , 7, 2 ,3 ],0               ,88        )
+    Motors[Right_Shoulder_UpDown] =    Motor(Right_Shoulder_UpDown   ,Blocks[Right_Shoulder],[ 5,  6, 1, 2 ],0               ,45         )#done
+    Motors[Right_Shoulder_Sideways] =  Motor(Right_Shoulder_Sideways ,Blocks[Right_Elbow   ],[ 7 , 7, 6, 6 ],0               ,0          )#done
+    Motors[Left_Shoulder_UpDown] =     Motor(Left_Shoulder_UpDown    ,Blocks[Left_Shoulder ],[ 1 , 2, 5, 6 ],0               ,130        )#done
+    Motors[Left_Shoulder_Sideways] =   Motor(Left_Shoulder_Sideways  ,Blocks[Left_Elbow    ],[ 2 , 2, 3, 3 ],0               ,0          )#done
+    Motors[Right_Wrist] =              Motor(Right_Wrist             ,Blocks[Right_Wrist   ],[ 3 , 7, 2, 6 ],0               ,83         )
+    Motors[Left_Wrist] =               Motor(Left_Wrist              ,Blocks[Left_Wrist    ],[ 3 , 7, 2, 6 ],0               ,85         )
+    Motors[Right_Pelvis_Sideways] =    Motor(Right_Pelvis_Sideways   ,Blocks[Right_Pelvis  ],[ 2 , 6, 3, 7 ],0               ,154        )
+    Motors[Right_Pelvis_UpDown] =      Motor(Right_Pelvis_UpDown     ,Blocks[Right_Thigh   ],[ 2 , 3, 6 ,7 ],0               ,82         )
+    Motors[Left_Pelvis_Sideways] =     Motor(Left_Pelvis_Sideways    ,Blocks[Left_Pelvis   ],[ 2 , 6, 3, 7 ],0               ,8          )
+    Motors[Left_Pelvis_UpDown] =       Motor(Left_Pelvis_UpDown      ,Blocks[Left_Thigh    ],[ 6 , 7, 2 ,3 ],0               ,80         )
+    Motors[Right_Knee] =               Motor(Right_Knee              ,Blocks[Right_Calf    ],[ 6 , 7, 2 ,3 ],0               ,170        )
+    Motors[Left_Knee] =                Motor(Left_Knee               ,Blocks[Left_Calf     ],[ 2 , 3, 6 ,7 ],0               ,0          )
+    Motors[Right_Ankle_Sideways] =     Motor(Right_Ankle_Sideways    ,Blocks[Right_Foot    ],[ 3 , 7, 2, 6 ],-0.22           ,78         )
+    Motors[Right_Ankle_UpDown] =       Motor(Right_Ankle_UpDown      ,Blocks[Right_Ankle   ],[ 2 , 3, 6 ,7 ],0               ,90         )
+    Motors[Left_Ankle_Sideways] =      Motor(Left_Ankle_Sideways     ,Blocks[Left_Foot     ],[ 3 , 7, 2, 6 ],0.22            ,88         )
+    Motors[Left_Ankle_UpDown] =        Motor(Left_Ankle_UpDown       ,Blocks[Left_Ankle    ],[ 6 , 7, 2 ,3 ],0               ,90         )
     
     # Motors[Right_Shoulder_UpDown                      ].rotate(45       +   30)
     # Motors[Right_Shoulder_Sideways                    ].rotate(83       +   30)
@@ -310,7 +310,7 @@ def main():
     # Motors[Left_Knee                                  ].rotate(90       +   30)
     # Motors[Left_Ankle_UpDown                          ].rotate(88       +   30)
     # Motors[Left_Ankle_Sideways                        ].rotate(90       +   30)
-    Angles=[0]*16
+    Angles=[45.0, 0.0, 83.0, 130.0, 0.0, 85.0, 154.0, 82.0, 170.0, 90.0, 78.0, 8.0, 80.0, 0.0, 90.0, 88.0]
 
 
 
