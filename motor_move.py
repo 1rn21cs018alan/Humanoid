@@ -32,6 +32,7 @@ def motor_set(motor_pin:int,pwm_min:int,pwm_max:int):
 def move(motor_pin:int,angle:int)->None:
     global count
     global Angles
+    global prev_pin
     Angles[motor_pin]=angle
     try:
         if(motor_pin!=prev_pin):
@@ -43,6 +44,7 @@ def move(motor_pin:int,angle:int)->None:
             count=0
             packet = pack_data(Angles)
             client_socket.sendall(packet)
+        prev_pin=motor_pin
         # print(angle)
         # real_angle=pwm_val[motor_pin][0]+(pwm_val[motor_pin][1]-pwm_val[motor_pin][0])*angle/180
     except:

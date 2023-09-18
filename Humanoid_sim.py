@@ -17,6 +17,87 @@ def unpack_data(packet):
 HOST = '127.0.0.1'  # Use localhost
 PORT = 22343  # Choose the same port number as your sender program
 
+disable_Sticky=True
+
+
+def Stick_to_ground():
+    global Blocks
+    vert1=np.array(Blocks[Left_Foot].corner)
+    vert2=np.array(Blocks[Right_Foot].corner)
+    # Calculate the normal vectors and plane equations for vert1 and vert2
+    normal1 = np.cross(vert1[1] - vert1[0], vert1[4] - vert1[0])
+    normal1 /= np.linalg.norm(normal1)
+    a1, b1, c1 = normal1
+    d1 = -np.dot(normal1, vert1[0])
+
+    normal2 = np.cross(vert2[1] - vert2[0], vert2[4] - vert2[0])
+    normal2 /= np.linalg.norm(normal2)
+    a2, b2, c2 = normal2
+    d2 = -np.dot(normal2, vert2[0])
+
+    # Count points below vert1 and vert2
+    points_below_vert1 = 0
+    points_below_vert2 = 0
+    points_considered=[]
+    for each in Blocks:
+        points_considered.extend(each.corner)
+    for point in points_considered:
+        distance1 = a1 * point[0] + b1 * point[1] + c1 * point[2] + d1
+        distance2 = a2 * point[0] + b2 * point[1] + c2 * point[2] + d2
+
+        if distance1 < 0:
+            points_below_vert1 += 1
+        if distance2 < 0:
+            points_below_vert2 += 1
+
+    if( points_below_vert1 <= points_below_vert2):
+        point1 = vert1[1]
+        point0 = vert1[0]
+        point4 = vert1[4]
+    else:
+        point1 = vert2[1]
+        point0 = vert2[0]
+        point4 = vert2[4]
+
+    # Calculate vectors from point0 to point1 and from point0 to point4
+    vector1_0 = point1 - point0
+    vector4_0 = point4 - point0
+
+    # Calculate the normal vector of the plane defined by points 1, 0, and 4
+    normal_vector = np.cross(vector1_0, vector4_0)
+    
+    # Normalize the normal vector
+    normal_vector /= np.linalg.norm(normal_vector)
+
+    # Find the rotation matrix to align the normal vector with the positive Y-axis (y=0 plane)
+    target_vector = np.array([0, 1, 0])  # Positive Y-axis
+    rotation_axis = np.cross(normal_vector, target_vector)
+    rotation_angle = np.arccos(np.dot(normal_vector, target_vector))
+    
+    # Create the rotation matrix
+    c = np.cos(rotation_angle)
+    s = np.sin(rotation_angle)
+    t = 1 - c
+    x, y, z = rotation_axis
+    rotation_matrix = np.array([
+        [t * x * x + c, t * x * y - z * s, t * x * z + y * s],
+        [t * x * y + z * s, t * y * y + c, t * y * z - x * s],
+        [t * x * z - y * s, t * y * z + x * s, t * z * z + c]
+    ])
+    trs=np.dot(np.array(point0), rotation_matrix.T)
+    trs2=np.dot(np.array(point1), rotation_matrix.T)
+    dist=np.sqrt(np.sum((trs-trs2)**2))
+    # print(dist,Blocks[Left_Foot].depth)
+    ratio=Blocks[Left_Foot].depth/dist
+    trs[0]=trs[2]=0
+    # print(trs)
+    # Apply the rotation matrix to all points on the surface
+    if(abs(ratio-1)<0.005):
+        for i in range(len(Blocks)):
+            Blocks[i].corner=list(np.dot(np.array(Blocks[i].corner), rotation_matrix.T)-trs)
+    else:
+        for i in range(len(Blocks)):
+            Blocks[i].corner=list((np.dot(np.array(Blocks[i].corner), rotation_matrix.T)-trs)*ratio)
 
 
 def sin(val):
@@ -320,7 +401,6 @@ def main():
         print("Receiver waiting for connections...")
         conn, addr = server_socket.accept()
         print("Connected by", addr)
-        count=0
         with conn:
             conn.settimeout(0.02)
             while True:
@@ -365,13 +445,23 @@ def main():
                         Angles = [45.0, 0.0, 83.0, 130.0, 0.0, 85.0, 154.0, 82.0, 170.0, 90.0, 78.0, 8.0, 80.0, 0.0, 90.0, 88.0111]
                 except:
                     pass
-                count+=1
-                if(count>100):
-                    print(Angles)
-                    count=0
                 
                 for i in range(16):
                     Motors[i].rotate(Angles[i])
+                glBegin(GL_QUADS)
+                glColor4fv((0.5,0.5,0.5,1))
+                glVertex3fv([70,0,-70])
+                glColor4fv((0.2,0.2,0.2,1))
+                glVertex3fv([-70,0,-70])
+                glColor4fv((0.5,0.5,0.5,1))
+                glVertex3fv([-70,0,70])
+                glColor4fv((0.2,0.2,0.2,1))
+                glVertex3fv([70,0,70])
+                glColor3fv((0,0,0))
+                glEnd()
+
+                if not disable_Sticky:
+                    Stick_to_ground()
 
                 for each in Blocks:
                     each.draw()
