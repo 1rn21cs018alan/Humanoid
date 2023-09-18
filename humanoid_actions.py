@@ -80,7 +80,7 @@ class Humanoid_Action_Bank(SC.HumanoidAction):
         SC.Left_Ankle_Sideways.motor_init(15,616,2440)#done
 
     def slow_action(self,initialpos:list,finalpos:list,deltime=500,steps=6):
-        n=int(steps)
+        n=int(steps)//2
         for i in range(1,n+1):
             # <Motor> . <move to exact Degree function> ( <next step's angle calculation> )
             SC.Right_Shoulder_UpDown.turn_absolute(initialpos[0] -(initialpos[0]-finalpos[0])*i/n)

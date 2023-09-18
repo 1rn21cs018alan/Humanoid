@@ -420,9 +420,9 @@ def select_preset_file(stdscr):
         stdscr.refresh()
         curses.flushinp()
         key=stdscr.getch()
-        if(key==curses.KEY_LEFT):
+        if(key==curses.KEY_LEFT or key==452):
             prev_option=hover_option-1
-        elif(key==curses.KEY_RIGHT):
+        elif(key==curses.KEY_RIGHT or key==454):
             prev_option=hover_option+1
         elif(key==curses.KEY_ENTER or key==10 or key==13):
             break

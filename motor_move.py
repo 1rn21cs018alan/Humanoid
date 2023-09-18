@@ -21,6 +21,7 @@ Angles=[0]*16
 count=0
 pwm_val=[[0,0] for i in range(16)]
 printerror=False
+prev_pin=0
 atexit.register(close_socket, client_socket)
 def motor_set(motor_pin:int,pwm_min:int,pwm_max:int):
     # kit.servo[motor_pin].set_pulse_width_range(pwm_min,pwm_max)
@@ -33,8 +34,13 @@ def move(motor_pin:int,angle:int)->None:
     global Angles
     Angles[motor_pin]=angle
     try:
-        count=(count+1)%4
-        if(count==0):
+        if(motor_pin!=prev_pin):
+            count=(count+1)%16
+            if(count==0):
+                packet = pack_data(Angles)
+                client_socket.sendall(packet)
+        else:
+            count=0
             packet = pack_data(Angles)
             client_socket.sendall(packet)
         # print(angle)
