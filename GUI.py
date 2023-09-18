@@ -9,7 +9,6 @@ actions=None
 __num_Flag={"preset_no":0}
 # this function calls Servo_Control to increase  the angle of the motors
 def increase(pin_num):
-    return pin_num,0
     angles=[]
     temp_num=0
     for i in SC.cur_angle.get_angle():
@@ -54,7 +53,6 @@ def increase(pin_num):
 
 # this function calls Servo_Control to increase  the angle of the motors
 def decrease(pin_num):
-    return pin_num,0
     # print((-1,pin_num))
     angles=[]
     temp_num=0
@@ -434,7 +432,7 @@ def select_preset_file(stdscr):
         # raise ValueError(str(hover_option))
     # stdscr.clear()
     # motor_bg(stdscr)
-    # actions.load_preset(paths[hover_option])
+    actions.load_preset(paths[hover_option])
     __num_Flag['preset_no']=hover_option
     return
 
@@ -444,7 +442,7 @@ def select_preset_file(stdscr):
 
 # contains the running code of GUI
 def main(stdscr):
-    # humanoid_actions.flag.init(stdscr)
+    humanoid_actions.flag.init(stdscr)
     stdscr.clear()
     curses.init_pair(1,curses.COLOR_RED,curses.COLOR_WHITE) # type: ignore
     curses.init_pair(2,curses.COLOR_RED,curses.COLOR_CYAN) # type: ignore
@@ -469,7 +467,7 @@ def main(stdscr):
 
 
         #controls for each key press
-        stdscr.addstr(0,10,str(key))
+
         if key == ord('w'): # type: ignore
             current_motor=direc(current_motor,0)
         elif key == ord('s'): # type: ignore
@@ -490,13 +488,12 @@ def main(stdscr):
             select_preset_file(stdscr)
             # actions.load_preset("Downloads/New/Presets.txt")
         elif key == ord('n'):
-            # with open("save_data.txt",mode="a") as f:
-            #     f.write("\n"+str(SC.cur_angle.get_angle())+",")
-            # with open("Presets.txt",mode="w+") as f:
-            #     temp=actions.get_SavedState()
-            #     for line in temp:
-            #         f.write("\n"+str(line))
-            pass
+            with open("save_data.txt",mode="a") as f:
+                f.write("\n"+str(SC.cur_angle.get_angle())+",")
+            with open("Presets.txt",mode="w+") as f:
+                temp=actions.get_SavedState()
+                for line in temp:
+                    f.write("\n"+str(line))
         elif key == ord('p'):
             show_message_screen(stdscr,'walking')
         elif key == ord('x'):
@@ -504,12 +501,12 @@ def main(stdscr):
             return
         elif key>ord('0') and key<=ord('9'):
             stdscr.addstr(36, 0, " Set Preset  ")
-            # actions.set_Preset(key-ord('0'))
+            actions.set_Preset(key-ord('0'))
         elif key==ord('l'):
             stdscr.addstr(36, 0, " Run Preset ")
-            # actions.checkfunc=humanoid_actions.flag.Interrupt
-            # actions.Run_Preset()
-            # actions.checkfunc=humanoid_actions.NoInterrupt
+            actions.checkfunc=humanoid_actions.flag.Interrupt
+            actions.Run_Preset()
+            actions.checkfunc=humanoid_actions.NoInterrupt
             stdscr.timeout(-1)
         elif key==ord('m'):
             joystick_mode(stdscr)
@@ -518,15 +515,15 @@ def main(stdscr):
 
 
 def show_message_screen(stdscr,message):
-    # global actions
-    # actions.checkfunc=humanoid_actions.flag.Interrupt
+    global actions
+    actions.checkfunc=humanoid_actions.flag.Interrupt
     walking_1=0
     stdscr.addstr(0,0,"   Walking... No input can taken until walking stops",curses.color_pair(3))
     stdscr.timeout(50)
     curses.flushinp()
     for i in range(10):
         key=stdscr.getch()
-        # walking_1=actions.walk(walking_1) 
+        walking_1=actions.walk(walking_1) 
         if key== ord('p'):
             break
     
@@ -534,13 +531,12 @@ def show_message_screen(stdscr,message):
     motor_bg(stdscr)
     stdscr.addstr(0,0,"   Walking stoped\t\t\t\t",curses.color_pair(3))
     stdscr.timeout(-1)
-    # actions.checkfunc=humanoid_actions.NoInterrupt
+    actions.checkfunc=humanoid_actions.NoInterrupt
     setZero()
     return
 
 
 def setZero():
-    return
     actions.slow([0,0,0, 0,0,0, 6,0,0,0,-5, 6,0,0,0,-5],steps=15)
 
 def joystick_mode(stdscr):
@@ -558,20 +554,15 @@ def joystick_mode(stdscr):
         sleep(0.05)
         
         if key == ord('w'): # type: ignore
-            pass
-            #actions._front()
+            actions._front()
         elif key == ord('s'): # type: ignore
-            pass
-            #actions._back()
+            actions._back()
         elif key == ord('a'):
-            pass
-            #actions._left()
+            actions._left()
         elif key == ord('d'):
-            pass
-            #actions._right()
+            actions._right()
         elif key==ord('x'):
-            pass
-            #actions.walkcount=0
+            actions.walkcount=0
             stdscr.clear()
             motor_bg(stdscr)
             return
@@ -584,10 +575,9 @@ def joystick_mode(stdscr):
 # UP and DOWN arrow keys to increase or decrease angle of active motor
 # N to save current angles of motors into a file
 def start_gui(passed_actions=None):# passed_actions is a redundant variable, not removing it since it works as of now
-    # global actions
-    # actions=humanoid_actions.Humanoid_Action_Bank()
-    # actions.start()
+    global actions
+    actions=humanoid_actions.Humanoid_Action_Bank()
+    actions.start()
     wrapper(main)
 
 
-start_gui()

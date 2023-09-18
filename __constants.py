@@ -19,10 +19,10 @@ Torso=16
 Head=17
 
 
-Right_Shoulder_Sideways =   0
-Right_Shoulder_UpDown =     1
-Left_Shoulder_Sideways =    3
-Left_Shoulder_UpDown =     4
+Right_Shoulder_Sideways =   1
+Right_Shoulder_UpDown =     0
+Left_Shoulder_Sideways =    4
+Left_Shoulder_UpDown =      3
 
 Right_Wrist =               2
 Left_Wrist =                5
@@ -35,7 +35,7 @@ Left_Pelvis_UpDown =        12
 Right_Knee =                8
 Left_Knee =                 13
 
-Right_Ankle_Sideways =      9
-Right_Ankle_UpDown =        10
-Left_Ankle_Sideways =       14
-Left_Ankle_UpDown =         15
+Right_Ankle_Sideways =      10
+Right_Ankle_UpDown =        9
+Left_Ankle_Sideways =       15
+Left_Ankle_UpDown =         14

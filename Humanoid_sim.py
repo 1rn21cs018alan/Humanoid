@@ -2,11 +2,23 @@ from OpenGL.GLUT import *
 from OpenGL.GL import *  
 from OpenGL.GLU import *  
 import pygame
+from time import sleep
 from pygame.locals import *
 import math
 import numpy as np
 from __constants import *
 from copy import deepcopy as dc
+import socket
+import struct
+
+def unpack_data(packet):
+    return struct.unpack('!16f', packet)
+
+HOST = '127.0.0.1'  # Use localhost
+PORT = 22343  # Choose the same port number as your sender program
+
+
+
 def sin(val):
     return math.sin(val*0.01745)
 def cos(val):
@@ -223,6 +235,8 @@ class Motor:
 
 
 def main():
+    global Motors
+    global Blocks
     pygame.init()
     display = (1200,800)
     displayCenter=(display[0]/2,display[1]/2)
@@ -296,64 +310,92 @@ def main():
     # Motors[Left_Knee                                  ].rotate(90       +   30)
     # Motors[Left_Ankle_UpDown                          ].rotate(88       +   30)
     # Motors[Left_Ankle_Sideways                        ].rotate(90       +   30)
-
-    rot_angle=0#to be deleted
-    while True:
-        for event in pygame.event.get():
-            if event.type==pygame.KEYDOWN:
-                if (event.key==pygame.K_ESCAPE):
-                    pygame.quit()
-                    quit()
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
-            if event.type == pygame.MOUSEMOTION:
-                mouseMove = [event.pos[i] - displayCenter[i] for i in range(2)]
-                pygame.mouse.set_pos(displayCenter)
-                glRotatef(0.1*mouseMove[0],0,1,0)
-                view_angle+=0.1*mouseMove[0]
-        key= pygame.key.get_pressed()
-        if(not Hold_Shift or (Hold_Shift and ( key[pygame.K_RSHIFT] or key[pygame.K_LSHIFT]))):
-            if(key[pygame.K_w]):
-                glTranslatef(-0.2*sin(view_angle),0,0.2*cos(view_angle))
-            elif(key[pygame.K_s]):
-                glTranslatef(0.2*sin(view_angle),0,-0.2*cos(view_angle))
-
-            if(key[pygame.K_q] or key[pygame.K_SPACE] or key[13] or key[10]):
-                glTranslatef(0,-0.2,0)
-            elif(key[pygame.K_e]or (not Hold_Shift and ( key[pygame.K_RSHIFT] or key[pygame.K_LSHIFT]))):
-                glTranslatef(0,0.2,0)
-
-        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
-        # Motors[Right_Shoulder_UpDown].rotate(rot_angle)#to be deleted
-        # rot_angle=(rot_angle+0.5)%90
-        # print(rot_angle)
-
-        # for each in Blocks:
-        #     each.draw()
-
-        # ******************************************
-        for i in range (len( Blocks)):
-            if(i!=Head):
-                each=Blocks[i]
-                each.draw()
-        glBegin(GL_QUADS)
-        surface=Blocks[Head].surfaces[4]
-        glColor4fv((0.9,0.9,0.9,1))
-        for vertex in surface:
-            glVertex3fv(Blocks[Head].corner[vertex])
-        surface=Blocks[Head].surfaces[5]
-        glColor4fv((0.9,0.9,0,1))
-        for vertex in surface:
-            glVertex3fv(Blocks[Head].corner[vertex])
-        glColor3fv((0,0,0))
-        glEnd()
-        #***********************************To be deleted(only for my ref while testing)
-
-        pygame.display.flip()
-        pygame.time.wait(30)
+    Angles=[0]*16
 
 
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
+        server_socket.bind((HOST, PORT))
+        server_socket.listen()
+        print("Receiver waiting for connections...")
+        conn, addr = server_socket.accept()
+        print("Connected by", addr)
+        count=0
+        with conn:
+            conn.settimeout(0.02)
+            while True:
+                for event in pygame.event.get():
+                    if event.type==pygame.KEYDOWN:
+                        if (event.key==pygame.K_ESCAPE):
+                            pygame.quit()
+                            quit()
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        quit()
+                    if event.type == pygame.MOUSEMOTION:
+                        mouseMove = [event.pos[i] - displayCenter[i] for i in range(2)]
+                        pygame.mouse.set_pos(displayCenter)
+                        glRotatef(0.1*mouseMove[0],0,1,0)
+                        view_angle+=0.1*mouseMove[0]
+                key= pygame.key.get_pressed()
+                if(not Hold_Shift or (Hold_Shift and ( key[pygame.K_RSHIFT] or key[pygame.K_LSHIFT]))):
+                    if(key[pygame.K_w]):
+                        glTranslatef(-0.2*sin(view_angle),0,0.2*cos(view_angle))
+                    elif(key[pygame.K_s]):
+                        glTranslatef(0.2*sin(view_angle),0,-0.2*cos(view_angle))
+
+                    if(key[pygame.K_q] or key[pygame.K_SPACE] or key[13] or key[10]):
+                        glTranslatef(0,-0.2,0)
+                    elif(key[pygame.K_e]or (not Hold_Shift and ( key[pygame.K_RSHIFT] or key[pygame.K_LSHIFT]))):
+                        glTranslatef(0,0.2,0)
+
+                glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
+                # Motors[Right_Shoulder_UpDown].rotate(rot_angle)#to be deleted
+                # rot_angle=(rot_angle+0.5)%90
+                # print(rot_angle)
+                try:
+                    packet = conn.recv(65536)  # Receive a fixed-size packet
+                    if not packet:
+                        break
+                    
+                    # Unpack the data from the received packet
+                    if len(packet) >63:
+                        Angles = unpack_data(packet[-64:])
+                    else:
+                        Angles = [45.0, 0.0, 83.0, 130.0, 0.0, 85.0, 154.0, 82.0, 170.0, 90.0, 78.0, 8.0, 80.0, 0.0, 90.0, 88.0111]
+                except:
+                    pass
+                count+=1
+                if(count>100):
+                    print(Angles)
+                    count=0
+                
+                for i in range(16):
+                    Motors[i].rotate(Angles[i])
+
+                for each in Blocks:
+                    each.draw()
+
+                # ******************************************
+                # for i in range (len( Blocks)):
+                #     if(i!=Head):
+                #         each=Blocks[i]
+                #         each.draw()
+                # glBegin(GL_QUADS)
+                # surface=Blocks[Head].surfaces[4]
+                # glColor4fv((0.9,0.9,0.9,1))
+                # for vertex in surface:
+                #     glVertex3fv(Blocks[Head].corner[vertex])
+                # surface=Blocks[Head].surfaces[5]
+                # glColor4fv((0.9,0.9,0,1))
+                # for vertex in surface:
+                #     glVertex3fv(Blocks[Head].corner[vertex])
+                # glColor3fv((0,0,0))
+                # glEnd()
+                #***********************************To be deleted(only for my ref while testing)
+
+                pygame.display.flip()
+                pygame.time.wait(30)
 Blocks=[0]*18
 Motors=[0]*16
 main()
