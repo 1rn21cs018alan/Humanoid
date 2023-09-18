@@ -165,13 +165,13 @@ class Motor:
         self.offset=offset
         self.cur_angle=default_angle
     def turn_what(self,mot):
-        if(mot==   Right_Shoulder_Sideways):
+        if(mot==   Right_Shoulder_UpDown):
             return[  Right_Shoulder,Right_Elbow,Right_Wrist]
-        elif(mot== Right_Shoulder_UpDown):
+        elif(mot== Right_Shoulder_Sideways):
             return[  Right_Elbow,Right_Wrist ]
-        elif(mot== Left_Shoulder_Sideways):
-            return[  Left_Shoulder,Left_Elbow,Left_Wrist]
         elif(mot== Left_Shoulder_UpDown):
+            return[  Left_Shoulder,Left_Elbow,Left_Wrist]
+        elif(mot== Left_Shoulder_Sideways):
             return[  Left_Elbow,Left_Wrist]
         elif(mot== Right_Wrist):
             return[  Right_Wrist]
@@ -263,39 +263,39 @@ def main():
     Blocks[Right_Foot]=FreeBlock(3.3,0.5,4,loc=[-1.95, 0.25, 0.5],color=colors['light green'])
     Blocks[Left_Foot] =FreeBlock(3.3,0.5,4,loc=[ 1.95, 0.25, 0.5],color=colors['light green'])
 
-    Motors[Right_Shoulder_UpDown] =    Motor(Right_Shoulder_UpDown   ,Blocks[Right_Elbow   ],[ 7 , 7, 6, 6 ],0               ,45      )
-    Motors[Right_Shoulder_Sideways] =  Motor(Right_Shoulder_Sideways ,Blocks[Right_Shoulder],[ 1 , 2, 5, 6 ],0               ,83      )
-    Motors[Left_Shoulder_Sideways] =   Motor(Left_Shoulder_Sideways  ,Blocks[Left_Shoulder ],[ 1 , 2, 5, 6 ],0               ,130     )
-    Motors[Left_Shoulder_UpDown] =     Motor(Left_Shoulder_UpDown    ,Blocks[Left_Elbow    ],[ 2 , 2, 3, 3 ],0               ,0       )
-    Motors[Right_Wrist] =              Motor(Right_Wrist             ,Blocks[Right_Wrist   ],[ 2 , 6, 3, 7 ],0               ,20      )
-    Motors[Left_Wrist] =               Motor(Left_Wrist              ,Blocks[Left_Wrist    ],[ 2 , 6, 3, 7 ],0               ,85      )
-    Motors[Right_Pelvis_Sideways] =    Motor(Right_Pelvis_Sideways   ,Blocks[Right_Pelvis  ],[ 2 , 6, 3, 7 ],0               ,154     )
-    Motors[Right_Pelvis_UpDown] =      Motor(Right_Pelvis_UpDown     ,Blocks[Right_Thigh   ],[ 6 , 7, 2 ,3 ],0               ,82      )
-    Motors[Left_Pelvis_Sideways] =     Motor(Left_Pelvis_Sideways    ,Blocks[Left_Pelvis   ],[ 2 , 6, 3, 7 ],0               ,0       )
+    Motors[Right_Shoulder_UpDown] =    Motor(Right_Shoulder_UpDown   ,Blocks[Right_Shoulder],[ 5,  6, 1, 2 ],0               ,45        )#done
+    Motors[Right_Shoulder_Sideways] =  Motor(Right_Shoulder_Sideways ,Blocks[Right_Elbow   ],[ 7 , 7, 6, 6 ],0               ,83        )#done
+    Motors[Left_Shoulder_UpDown] =     Motor(Left_Shoulder_UpDown    ,Blocks[Left_Shoulder ],[ 1 , 2, 5, 6 ],0               ,0         )#done
+    Motors[Left_Shoulder_Sideways] =   Motor(Left_Shoulder_Sideways  ,Blocks[Left_Elbow    ],[ 2 , 2, 3, 3 ],0               ,130       )#done
+    Motors[Right_Wrist] =              Motor(Right_Wrist             ,Blocks[Right_Wrist   ],[ 3 , 7, 2, 6 ],0               ,20        )
+    Motors[Left_Wrist] =               Motor(Left_Wrist              ,Blocks[Left_Wrist    ],[ 3 , 7, 2, 6 ],0               ,85        )
+    Motors[Right_Pelvis_Sideways] =    Motor(Right_Pelvis_Sideways   ,Blocks[Right_Pelvis  ],[ 2 , 6, 3, 7 ],0               ,154       )
+    Motors[Right_Pelvis_UpDown] =      Motor(Right_Pelvis_UpDown     ,Blocks[Right_Thigh   ],[ 2 , 3, 6 ,7 ],0               ,82        )
+    Motors[Left_Pelvis_Sideways] =     Motor(Left_Pelvis_Sideways    ,Blocks[Left_Pelvis   ],[ 2 , 6, 3, 7 ],0               ,0         )
     Motors[Left_Pelvis_UpDown] =       Motor(Left_Pelvis_UpDown      ,Blocks[Left_Thigh    ],[ 6 , 7, 2 ,3 ],0               ,78        )
-    Motors[Right_Knee] =               Motor(Right_Knee              ,Blocks[Right_Calf    ],[ 6 , 7, 2 ,3 ],0               ,8     )
-    Motors[Left_Knee] =                Motor(Left_Knee               ,Blocks[Left_Calf     ],[ 6 , 7, 2 ,3 ],0               ,90     )
-    Motors[Right_Ankle_Sideways] =     Motor(Right_Ankle_Sideways    ,Blocks[Right_Foot    ],[ 2 , 6, 3, 7 ],-0.22           ,170     )
-    Motors[Right_Ankle_UpDown] =       Motor(Right_Ankle_UpDown      ,Blocks[Right_Ankle   ],[ 6 , 7, 2 ,3 ],0               ,80     )
-    Motors[Left_Ankle_Sideways] =      Motor(Left_Ankle_Sideways     ,Blocks[Left_Foot     ],[ 2 , 6, 3, 7 ],0.22            ,90     )
-    Motors[Left_Ankle_UpDown] =        Motor(Left_Ankle_UpDown       ,Blocks[Left_Ankle    ],[ 6 , 7, 2 ,3 ],0               ,88     )
+    Motors[Right_Knee] =               Motor(Right_Knee              ,Blocks[Right_Calf    ],[ 6 , 7, 2 ,3 ],0               ,8         )
+    Motors[Left_Knee] =                Motor(Left_Knee               ,Blocks[Left_Calf     ],[ 2 , 3, 6 ,7 ],0               ,90        )
+    Motors[Right_Ankle_Sideways] =     Motor(Right_Ankle_Sideways    ,Blocks[Right_Foot    ],[ 3 , 7, 2, 6 ],-0.22           ,170       )
+    Motors[Right_Ankle_UpDown] =       Motor(Right_Ankle_UpDown      ,Blocks[Right_Ankle   ],[ 2 , 3, 6 ,7 ],0               ,80        )
+    Motors[Left_Ankle_Sideways] =      Motor(Left_Ankle_Sideways     ,Blocks[Left_Foot     ],[ 3 , 7, 2, 6 ],0.22            ,90        )
+    Motors[Left_Ankle_UpDown] =        Motor(Left_Ankle_UpDown       ,Blocks[Left_Ankle    ],[ 6 , 7, 2 ,3 ],0               ,88        )
     
-    Motors[Right_Shoulder_UpDown                      ].rotate(45)
-    Motors[Right_Shoulder_Sideways                    ].rotate(83)
-    Motors[Right_Wrist                                ].rotate(20)
-    Motors[Left_Shoulder_Sideways                     ].rotate(130)
-    Motors[Left_Shoulder_UpDown                       ].rotate(0)
-    Motors[Left_Wrist                                 ].rotate(85)
-    Motors[Right_Pelvis_Sideways                      ].rotate(154)
-    Motors[Right_Pelvis_UpDown                        ].rotate(82)
-    Motors[Right_Knee                                 ].rotate(8)
-    Motors[Right_Ankle_UpDown                         ].rotate(80)
-    Motors[Right_Ankle_Sideways                       ].rotate(170)
-    Motors[Left_Pelvis_Sideways                       ].rotate(0)
-    Motors[Left_Pelvis_UpDown                         ].rotate(78)
-    Motors[Left_Knee                                  ].rotate(90)
-    Motors[Left_Ankle_UpDown                          ].rotate(88)
-    Motors[Left_Ankle_Sideways                        ].rotate(90)
+    # Motors[Right_Shoulder_UpDown                      ].rotate(45       +   30)
+    # Motors[Right_Shoulder_Sideways                    ].rotate(83       +   30)
+    # Motors[Right_Wrist                                ].rotate(20       +   30)
+    # Motors[Left_Shoulder_Sideways                     ].rotate(130      +   30)
+    # Motors[Left_Shoulder_UpDown                       ].rotate(0        +   30)
+    # Motors[Left_Wrist                                 ].rotate(85       +   30)
+    # Motors[Right_Pelvis_Sideways                      ].rotate(154      +   30)
+    # Motors[Right_Pelvis_UpDown                        ].rotate(82       +   30)
+    # Motors[Right_Knee                                 ].rotate(8        +   30)
+    # Motors[Right_Ankle_UpDown                         ].rotate(80       +   30)
+    # Motors[Right_Ankle_Sideways                       ].rotate(170      +   30)
+    # Motors[Left_Pelvis_Sideways                       ].rotate(0        +   30)
+    # Motors[Left_Pelvis_UpDown                         ].rotate(78       +   30)
+    # Motors[Left_Knee                                  ].rotate(90       +   30)
+    # Motors[Left_Ankle_UpDown                          ].rotate(88       +   30)
+    # Motors[Left_Ankle_Sideways                        ].rotate(90       +   30)
 
     rot_angle=0#to be deleted
     while True:
@@ -325,12 +325,31 @@ def main():
                 glTranslatef(0,0.2,0)
 
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
-        Blocks[Head].rotate()#to be deleted
         # Motors[Right_Shoulder_UpDown].rotate(rot_angle)#to be deleted
         # rot_angle=(rot_angle+0.5)%90
         # print(rot_angle)
-        for each in Blocks:
-            each.draw()
+
+        # for each in Blocks:
+        #     each.draw()
+
+        # ******************************************
+        for i in range (len( Blocks)):
+            if(i!=Head):
+                each=Blocks[i]
+                each.draw()
+        glBegin(GL_QUADS)
+        surface=Blocks[Head].surfaces[4]
+        glColor4fv((0.9,0.9,0.9,1))
+        for vertex in surface:
+            glVertex3fv(Blocks[Head].corner[vertex])
+        surface=Blocks[Head].surfaces[5]
+        glColor4fv((0.9,0.9,0,1))
+        for vertex in surface:
+            glVertex3fv(Blocks[Head].corner[vertex])
+        glColor3fv((0,0,0))
+        glEnd()
+        #***********************************To be deleted(only for my ref while testing)
+
         pygame.display.flip()
         pygame.time.wait(30)
 
