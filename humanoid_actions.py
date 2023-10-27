@@ -2,7 +2,7 @@ from Servo_Control import delay
 import Servo_Control as SC
 import GUI
 import copy
-
+from math import cos
 def NoInterrupt():
     return False
 
@@ -12,6 +12,7 @@ class Humanoid_Action_Bank(SC.HumanoidAction):
         self.stand()
         self.checkfunc=NoInterrupt
         self.saved_states=[[0,0,0,  0,0,0,  6,0,0,0,-5,  6,0,0,0,-5] for i in range(9)]
+        self.DELangle=[0]*16
         self.walk_points=[
                             [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.0, 0.0, 0.0, 0.0, -5.0, 6.0, 0.0, 0.0, 0.0, -5.0],
                             [-15, 0.0, 0.0, 25, 0.0, 0.0, 6.0, 0.0, 0.0, 0.0, -17.0, 6.0, 0.0, 0.0, 0.0, 13.0],
@@ -80,7 +81,9 @@ class Humanoid_Action_Bank(SC.HumanoidAction):
         SC.Left_Ankle_Sideways.motor_init(15,616,2440)#done
 
     def slow_action(self,initialpos:list,finalpos:list,deltime=500,steps=6):
-        n=int(steps)//2
+        n=int(steps)
+        return self.sine_smoothen(initialpos,finalpos,deltime,n)
+        # return self.parabolic_smoothen(initialpos,finalpos,deltime,n)
         for i in range(1,n+1):
             # <Motor> . <move to exact Degree function> ( <next step's angle calculation> )
             SC.Right_Shoulder_UpDown.turn_absolute(initialpos[0] -(initialpos[0]-finalpos[0])*i/n)
@@ -153,11 +156,13 @@ class Humanoid_Action_Bank(SC.HumanoidAction):
         self.saved_states=[]
         with open(path,mode="r") as f:
             for each in f.readlines():
+                if(each=="\n"):
+                    continue
                 angles=[0]*16
                 index_angles=0
                 temp=''
                 for character in each:
-                    if(character.isdigit() or character=='.'):
+                    if(character.isdigit() or character=='.' or character=="-" or character=="e"):
                         temp+=character
                     elif (temp!=''):
                         angles[index_angles]=float(temp)
@@ -180,8 +185,72 @@ class Humanoid_Action_Bank(SC.HumanoidAction):
         for each in self.turn_points[5:]:
             self.slow(each,steps=20//self.joystick_speed)    
     def get_SavedState(self):
-        return copy.deepcopy(self.saved_states)
+        temp2=[]
+        for state in self.saved_states:
+            temp=[0]*16
+            for i in range(16):
+                temp[i]=int(state[i])
+            temp2.append(temp)
+        return temp2
 
+    def parabolic_smoothen(self,initialpos:list,finalpos:list,deltime,steps):
+        a=[0]*16
+        for i in range(16):
+            a[i]=(finalpos[i]-initialpos[i]-self.DELangle[i]*steps)/(steps*steps)
+        n=steps
+        for i in range(1,n+1):
+            # <Motor> . <move to exact Degree function> ( <next step's angle calculation> )
+            SC.Right_Shoulder_UpDown.turn_absolute  (initialpos[0]  +(self.DELangle[0]*i)   +(a[0]*i*i )  )
+            SC.Right_Shoulder_Sideways.turn_absolute(initialpos[1]  +(self.DELangle[1]*i)   +(a[1]*i*i )  )
+            SC.Left_Shoulder_UpDown.turn_absolute   (initialpos[3]  +(self.DELangle[3]*i)   +(a[3]*i*i )  )
+            SC.Left_Shoulder_Sideways.turn_absolute (initialpos[4]  +(self.DELangle[4]*i)   +(a[4]*i*i )  )
+            SC.Right_Wrist.turn_absolute            (initialpos[2]  +(self.DELangle[2]*i)   +(a[2]*i*i )  )
+            SC.Left_Wrist.turn_absolute             (initialpos[5]  +(self.DELangle[5]*i)   +(a[5]*i*i )  )
+            SC.Right_Pelvis_Sideways.turn_absolute  (initialpos[6]  +(self.DELangle[6]*i)   +(a[6]*i*i )  )
+            SC.Right_Pelvis_UpDown.turn_absolute    (initialpos[7]  +(self.DELangle[7]*i)   +(a[7]*i*i )  )
+            SC.Left_Pelvis_Sideways.turn_absolute   (initialpos[11] +(self.DELangle[11]*i)  +(a[11]*i*i)  )
+            SC.Left_Pelvis_UpDown.turn_absolute     (initialpos[12] +(self.DELangle[12]*i)  +(a[12]*i*i)  )
+            SC.Right_Knee.turn_absolute             (initialpos[8]  +(self.DELangle[8]*i)   +(a[8]*i*i )  )
+            SC.Left_Knee.turn_absolute              (initialpos[13] +(self.DELangle[13]*i)  +(a[13]*i*i)  )
+            SC.Right_Ankle_Sideways.turn_absolute   (initialpos[10] +(self.DELangle[10]*i)  +(a[10]*i*i)  )
+            SC.Right_Ankle_UpDown.turn_absolute     (initialpos[9]  +(self.DELangle[9]*i)   +(a[9]*i*i )  )
+            SC.Left_Ankle_Sideways.turn_absolute    (initialpos[15] +(self.DELangle[15]*i)  +(a[15]*i*i)  )
+            SC.Left_Ankle_UpDown.turn_absolute      (initialpos[14] +(self.DELangle[14]*i)  +(a[14]*i*i)  )
+            is_interrupt=(self.checkfunc())
+            if is_interrupt:
+                return is_interrupt
+            delay(deltime)
+        return False
+    
+    def sine_smoothen(self,initialpos:list,finalpos:list,deltime,steps):
+        a=[0]*16
+        for i in range(16):
+            a[i]=finalpos[i]-initialpos[i]
+        n=steps
+        for i in range(1,n+1):
+            factor=(1+cos(i*3.14/n))/2
+            # <Motor> . <move to exact Degree function> ( <next step's angle calculation> )
+            SC.Right_Shoulder_UpDown.turn_absolute  (finalpos[0]  -(a[0] *factor)  )
+            SC.Right_Shoulder_Sideways.turn_absolute(finalpos[1]  -(a[1] *factor)  )
+            SC.Left_Shoulder_UpDown.turn_absolute   (finalpos[3]  -(a[3] *factor)  )
+            SC.Left_Shoulder_Sideways.turn_absolute (finalpos[4]  -(a[4] *factor)  )
+            SC.Right_Wrist.turn_absolute            (finalpos[2]  -(a[2] *factor)  )
+            SC.Left_Wrist.turn_absolute             (finalpos[5]  -(a[5] *factor)  )
+            SC.Right_Pelvis_Sideways.turn_absolute  (finalpos[6]  -(a[6] *factor)  )
+            SC.Right_Pelvis_UpDown.turn_absolute    (finalpos[7]  -(a[7] *factor)  )
+            SC.Left_Pelvis_Sideways.turn_absolute   (finalpos[11] -(a[11]*factor)  )
+            SC.Left_Pelvis_UpDown.turn_absolute     (finalpos[12] -(a[12]*factor)  )
+            SC.Right_Knee.turn_absolute             (finalpos[8]  -(a[8] *factor)  )
+            SC.Left_Knee.turn_absolute              (finalpos[13] -(a[13]*factor)  )
+            SC.Right_Ankle_Sideways.turn_absolute   (finalpos[10] -(a[10]*factor)  )
+            SC.Right_Ankle_UpDown.turn_absolute     (finalpos[9]  -(a[9] *factor)  )
+            SC.Left_Ankle_Sideways.turn_absolute    (finalpos[15] -(a[15]*factor)  )
+            SC.Left_Ankle_UpDown.turn_absolute      (finalpos[14] -(a[14]*factor)  )
+            is_interrupt=(self.checkfunc())
+            if is_interrupt:
+                return is_interrupt
+            delay(deltime)
+        return False
         
     
 
