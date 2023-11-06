@@ -10,15 +10,19 @@ from __constants import *
 from copy import deepcopy as dc
 import socket
 import struct
-
+import gravity
 def unpack_data(packet):
     return struct.unpack('!16f', packet)
 
-HOST = '127.0.0.1'  # Use localhost
+# HOST = '127.0.0.1'  # Use localhost
+HOST = '192.168.1.52'  #for rpi
 PORT = 22343  # Choose the same port number as your sender program
 
 disable_Sticky=True
 
+class Timer:
+    def __init__(self) -> None:
+        self.T=0
 
 def Stick_to_ground():
     global Blocks
@@ -192,8 +196,9 @@ class CuboidBlock:
 
 
 class FreeBlock(CuboidBlock):
-    def __init__(self, Height, Width, Depth, color=colors['light grey'],loc=[0,0,0]):
+    def __init__(self, Height, Width, Depth, color=colors['light grey'],loc=[0,0,0],Name=""):
         super().__init__(Height, Width, Depth, color)
+        self.name=Name
         self.dimensions=dc(self.corner)
         self.reset_to_coords(loc)
 
@@ -214,40 +219,69 @@ class FreeBlock(CuboidBlock):
             self.corner[i][1]+=coords[1]
             self.corner[i][2]+=coords[2]
     
-    def rotate(self, axis_start=[0,0,0], axis_end=[0,1,0], angle_degrees=1):
-        # Convert angle to radians
-        angle_radians = np.radians(angle_degrees)
+    def rotate(self, axis_start=[0,0,0], axis_end=[0,1,0], angle_degrees=1,rotation_matrix=None):
+        if rotation_matrix is None:
+            # Convert angle to radians
+            angle_radians = np.radians(angle_degrees)
 
-        # Create a vector representing the axis of rotation
-        axis_vector = np.array(axis_end) - np.array(axis_start)
+            # Create a vector representing the axis of rotation
+            axis_vector = np.array(axis_end) - np.array(axis_start)
 
-        # Calculate the magnitude of the axis vector
-        axis_magnitude = np.linalg.norm(axis_vector)
+            # Calculate the magnitude of the axis vector
+            axis_magnitude = np.linalg.norm(axis_vector)
 
-        # Normalize the axis vector(get it's unit vector)
-        try:
-            normalized_axis = axis_vector / axis_magnitude
-        except ZeroDivisionError:
-            print("Axis Error")
-            return
+            # Normalize the axis vector(get it's unit vector)
+            try:
+                normalized_axis = axis_vector / axis_magnitude
+            except ZeroDivisionError:
+                print("Axis Error")
+                return
 
-        # Create a rotation matrix for rotating about the normalized axis
-        rotation_matrix = np.array([
-            [np.cos(angle_radians) + normalized_axis[0]**2 * (1 - np.cos(angle_radians)), 
-            normalized_axis[0] * normalized_axis[1] * (1 - np.cos(angle_radians)) - normalized_axis[2] * np.sin(angle_radians),
-            normalized_axis[0] * normalized_axis[2] * (1 - np.cos(angle_radians)) + normalized_axis[1] * np.sin(angle_radians)],
-            [normalized_axis[1] * normalized_axis[0] * (1 - np.cos(angle_radians)) + normalized_axis[2] * np.sin(angle_radians),
-            np.cos(angle_radians) + normalized_axis[1]**2 * (1 - np.cos(angle_radians)),
-            normalized_axis[1] * normalized_axis[2] * (1 - np.cos(angle_radians)) - normalized_axis[0] * np.sin(angle_radians)],
-            [normalized_axis[2] * normalized_axis[0] * (1 - np.cos(angle_radians)) - normalized_axis[1] * np.sin(angle_radians),
-            normalized_axis[2] * normalized_axis[1] * (1 - np.cos(angle_radians)) + normalized_axis[0] * np.sin(angle_radians),
-            np.cos(angle_radians) + normalized_axis[2]**2 * (1 - np.cos(angle_radians))]
-        ])
+            # Create a rotation matrix for rotating about the normalized axis
+            rotation_matrix = np.array([
+                [np.cos(angle_radians) + normalized_axis[0]**2 * (1 - np.cos(angle_radians)), 
+                normalized_axis[0] * normalized_axis[1] * (1 - np.cos(angle_radians)) - normalized_axis[2] * np.sin(angle_radians),
+                normalized_axis[0] * normalized_axis[2] * (1 - np.cos(angle_radians)) + normalized_axis[1] * np.sin(angle_radians)],
+                [normalized_axis[1] * normalized_axis[0] * (1 - np.cos(angle_radians)) + normalized_axis[2] * np.sin(angle_radians),
+                np.cos(angle_radians) + normalized_axis[1]**2 * (1 - np.cos(angle_radians)),
+                normalized_axis[1] * normalized_axis[2] * (1 - np.cos(angle_radians)) - normalized_axis[0] * np.sin(angle_radians)],
+                [normalized_axis[2] * normalized_axis[0] * (1 - np.cos(angle_radians)) - normalized_axis[1] * np.sin(angle_radians),
+                normalized_axis[2] * normalized_axis[1] * (1 - np.cos(angle_radians)) + normalized_axis[0] * np.sin(angle_radians),
+                np.cos(angle_radians) + normalized_axis[2]**2 * (1 - np.cos(angle_radians))]
+            ])
 
         # Translate the point to the origin (subtract axis_start), Rotate the translated point and undo translation
         for i in range(len(self.corner)):
             translated_point = np.array(self.corner[i]) - np.array(axis_start)
             self.corner[i]= np.dot(rotation_matrix, translated_point)+ np.array(axis_start)
+
+def reset_Humanoid(Blocks):
+    Blocks[Head].reset_to_coords([0,15.5,0])
+    Blocks[Torso].reset_to_coords([0,12.8,0])
+    
+    Blocks[Right_Shoulder].reset_to_coords([-2.7,14.6,0])
+    Blocks[Left_Shoulder].reset_to_coords([ 2.7,14.6,0])
+
+    Blocks[Right_Elbow].reset_to_coords([-3.7,12.8,0])
+    Blocks[Left_Elbow].reset_to_coords([ 3.7,12.8,0])
+
+    Blocks[Right_Wrist].reset_to_coords([-3.7,9.65,0])
+    Blocks[Left_Wrist].reset_to_coords([ 3.7,9.65,0])
+
+    Blocks[Right_Pelvis].reset_to_coords([-1.3,9.45,0])
+    Blocks[Left_Pelvis].reset_to_coords([ 1.3,9.45,0])
+
+    Blocks[Right_Thigh].reset_to_coords([-1.3,6.6,0])
+    Blocks[Left_Thigh].reset_to_coords([ 1.3,6.6,0])
+
+    Blocks[Right_Calf].reset_to_coords([-1.3,3.7,0])
+    Blocks[Left_Calf].reset_to_coords([ 1.3,3.7,0])
+
+    Blocks[Right_Ankle].reset_to_coords([-1.3,1.45,0])
+    Blocks[Left_Ankle].reset_to_coords([ 1.3,1.45,0])
+
+    Blocks[Right_Foot].reset_to_coords([-1.95, 0.25, 0.5])
+    Blocks[Left_Foot].reset_to_coords([ 1.95, 0.25, 0.5])
 
 
 class Motor:
@@ -319,7 +353,7 @@ def main():
     global Motors
     global Blocks
     pygame.init()
-    display = (1200,800)
+    display = (800,600)
     displayCenter=(display[0]/2,display[1]/2)
     pygame.display.set_mode(display, DOUBLEBUF|OPENGL)
     glEnable(GL_DEPTH_TEST)
@@ -328,35 +362,50 @@ def main():
     view_angle=0
     glTranslatef(0,-10,-25)
     Hold_Shift=False
+    Show_Stat=True
+    Total_Run_Time=Timer()
+    Centralize=True
 
 
-
-    Blocks[Head]=FreeBlock(1,1,1,loc=[0,15.5,0],color=colors['yellow'])
-    Blocks[Torso]=FreeBlock(4.2,4.2,1,loc=[0,12.8,0])
+    Blocks[Head]=FreeBlock(1,1,1,loc=[0,15.5,0],color=colors['yellow'],Name="Head")
+    Blocks[Torso]=FreeBlock(4.2,4.2,1,loc=[0,12.8,0],Name="Torso")
     
-    Blocks[Right_Shoulder]=FreeBlock(1,1.6,1.6,loc=[-2.7,14.6,0],color=colors['dark blue'])
-    Blocks[Left_Shoulder] =FreeBlock(1,1.6,1.6,loc=[ 2.7,14.6,0],color=colors['dark blue'])
+    Blocks[Right_Shoulder]  =FreeBlock(1,1.6,1.6,loc=[-2.7,14.6,0],     color=colors['dark blue']        ,Name="Right_Shoulder")              
+    Blocks[Left_Shoulder]   =FreeBlock(1,1.6,1.6,loc=[ 2.7,14.6,0],     color=colors['dark blue']        ,Name="Left_Shoulder")              
 
-    Blocks[Right_Elbow]=FreeBlock(1,4.2,1.6,loc=[-3.7,12.8,0],color=colors['blue'])
-    Blocks[Left_Elbow] =FreeBlock(1,4.2,1.6,loc=[ 3.7,12.8,0],color=colors['blue'])
-    
-    Blocks[Right_Wrist]=FreeBlock(1,2.1,1.6,loc=[-3.7,9.65,0],color=colors['light blue'])
-    Blocks[Left_Wrist] =FreeBlock(1,2.1,1.6,loc=[ 3.7,9.65,0],color=colors['light blue'])
-    
-    Blocks[Right_Pelvis]=FreeBlock(1.6,2.5,1,loc=[-1.3,9.45,0],color=colors['red'])
-    Blocks[Left_Pelvis] =FreeBlock(1.6,2.5,1,loc=[ 1.3,9.45,0],color=colors['red'])
+    Blocks[Right_Elbow]     =FreeBlock(1,4.2,1.6,loc=[-3.7,12.8,0],     color=colors['blue']             ,Name="Right_Elbow")              
+    Blocks[Left_Elbow]      =FreeBlock(1,4.2,1.6,loc=[ 3.7,12.8,0],     color=colors['blue']             ,Name="Left_Elbow")              
 
-    Blocks[Right_Thigh]=FreeBlock(1.6,3.2,1,loc=[-1.3,6.6,0],color=colors['grey'])
-    Blocks[Left_Thigh] =FreeBlock(1.6,3.2,1,loc=[ 1.3,6.6,0],color=colors['grey'])
+    Blocks[Right_Wrist]     =FreeBlock(1,2.1,1.6,loc=[-3.7,9.65,0],     color=colors['light blue']       ,Name="Right_Wrist")              
+    Blocks[Left_Wrist]      =FreeBlock(1,2.1,1.6,loc=[ 3.7,9.65,0],     color=colors['light blue']       ,Name="Left_Wrist")              
 
-    Blocks[Right_Calf]=FreeBlock(1.6,2.6,1,loc=[-1.3,3.7,0],color=colors['dark gray'])
-    Blocks[Left_Calf] =FreeBlock(1.6,2.6,1,loc=[ 1.3,3.7,0],color=colors['dark gray'])
+    Blocks[Right_Pelvis]    =FreeBlock(1.6,2.5,1,loc=[-1.3,9.45,0],     color=colors['red']              ,Name="Right_Pelvis")              
+    Blocks[Left_Pelvis]     =FreeBlock(1.6,2.5,1,loc=[ 1.3,9.45,0],     color=colors['red']              ,Name="Left_Pelvis")              
 
-    Blocks[Right_Ankle]=FreeBlock(1.6,1.9,1,loc=[-1.3,1.45,0],color=colors['green'])
-    Blocks[Left_Ankle] =FreeBlock(1.6,1.9,1,loc=[ 1.3,1.45,0],color=colors['green'])
+    Blocks[Right_Thigh]     =FreeBlock(1.6,3.2,1,loc=[-1.3,6.6,0],      color=colors['grey']             ,Name="Right_Thigh")              
+    Blocks[Left_Thigh]      =FreeBlock(1.6,3.2,1,loc=[ 1.3,6.6,0],      color=colors['grey']             ,Name="Left_Thigh")              
 
-    Blocks[Right_Foot]=FreeBlock(3.3,0.5,4,loc=[-1.95, 0.25, 0.5],color=colors['light green'])
-    Blocks[Left_Foot] =FreeBlock(3.3,0.5,4,loc=[ 1.95, 0.25, 0.5],color=colors['light green'])
+    Blocks[Right_Calf]      =FreeBlock(1.6,2.6,1,loc=[-1.3,3.7,0],      color=colors['dark gray']        ,Name="Right_Calf")              
+    Blocks[Left_Calf]       =FreeBlock(1.6,2.6,1,loc=[ 1.3,3.7,0],      color=colors['dark gray']        ,Name="Left_Calf")              
+
+    Blocks[Right_Ankle]     =FreeBlock(1.6,1.9,1,loc=[-1.3,1.45,0],     color=colors['green']            ,Name="Right_Ankle")              
+    Blocks[Left_Ankle]      =FreeBlock(1.6,1.9,1,loc=[ 1.3,1.45,0],     color=colors['green']            ,Name="Left_Ankle")              
+
+    Blocks[Right_Foot]      =FreeBlock(3.3,0.5,4,loc=[-1.95, 0.25, 0.5],color=colors['light green']      ,Name="Right_Foot")              
+    Blocks[Left_Foot]       =FreeBlock(3.3,0.5,4,loc=[ 1.95, 0.25, 0.5],color=colors['light green']      ,Name="Left_Foot")              
+
+    marker=FreeBlock(0.2,100,0.2)
+    marker.reset_to_coords((30,0,30))
+
+    Ground_marker=FreeBlock(0.1,5,0.1,color=colors['blue'])
+    Ground_marker.reset_to_coords((30,0,30))
+    Graviton=gravity.Gravity_Environment()
+    Weighted_blocks=[]
+    for each in Blocks:
+        Weighted_blocks.append(gravity.Mass_Objects(each,each.height*each.width*each.depth))
+        # print(each.height*each.width*each.depth)
+    Graviton.register(Objects=Weighted_blocks,gravity=1)
+
 
     Motors[Right_Shoulder_UpDown] =    Motor(Right_Shoulder_UpDown   ,Blocks[Right_Shoulder],[ 5,  6, 1, 2 ],0               ,45         )#done
     Motors[Right_Shoulder_Sideways] =  Motor(Right_Shoulder_Sideways ,Blocks[Right_Elbow   ],[ 7 , 7, 6, 6 ],0               ,0          )#done
@@ -428,6 +477,10 @@ def main():
                         glTranslatef(0,-0.2,0)
                     elif(key[pygame.K_e]or (not Hold_Shift and ( key[pygame.K_RSHIFT] or key[pygame.K_LSHIFT]))):
                         glTranslatef(0,0.2,0)
+                if key[pygame.K_c]:
+                    Centralize=not Centralize
+                if key[pygame.K_0]:
+                    reset_Humanoid(Blocks)
 
                 glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
                 # Motors[Right_Shoulder_UpDown].rotate(rot_angle)#to be deleted
@@ -466,26 +519,44 @@ def main():
                 for each in Blocks:
                     each.draw()
 
-                # ******************************************
-                # for i in range (len( Blocks)):
-                #     if(i!=Head):
-                #         each=Blocks[i]
-                #         each.draw()
-                # glBegin(GL_QUADS)
-                # surface=Blocks[Head].surfaces[4]
-                # glColor4fv((0.9,0.9,0.9,1))
-                # for vertex in surface:
-                #     glVertex3fv(Blocks[Head].corner[vertex])
-                # surface=Blocks[Head].surfaces[5]
-                # glColor4fv((0.9,0.9,0,1))
-                # for vertex in surface:
-                #     glVertex3fv(Blocks[Head].corner[vertex])
-                # glColor3fv((0,0,0))
-                # glEnd()
-                #***********************************To be deleted(only for my ref while testing)
+                if Total_Run_Time.T>60:
+                    Graviton.gravitate()
+                    Graviton.ground_collision()
+                    COM=Graviton.system_COM()
+                    if(Centralize):
+                        for each in Blocks:
+                            each.translate([-COM[0],0,-COM[2]])
+                    if(Show_Stat):
+
+                        AoS=[0]*4
+                        marker.reset_to_coords(Graviton.system_COM())
+                        ground_points=Graviton.detect_ground_points()
+                        if not Graviton.is_inside(COM):
+                            marker.color=colors['green']
+                        else:
+                            marker.color=colors['red']
+                        marker.draw()
+                        
+                        
+                        for each in ground_points:
+                            Ground_marker.reset_to_coords(each)
+                            AoS[AoS[3]]=[each[0],-0.3,each[2]]
+                            AoS[3]+=1
+                            if(AoS[3]>2):
+                                AoS[3]=1
+                            if(type(AoS[2])!=int):
+                                glBegin(GL_TRIANGLES)
+                                glColor3f(1,0,0)
+                                for each in AoS[:3]:
+                                    glVertex3f(*each)
+                                glColor3fv((0,0,0))
+                                glEnd()
+                            Ground_marker.draw()
+
 
                 pygame.display.flip()
                 pygame.time.wait(30)
+                Total_Run_Time.T+=30
 Blocks=[0]*18
 Motors=[0]*16
 main()
