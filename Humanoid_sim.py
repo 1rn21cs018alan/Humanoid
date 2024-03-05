@@ -401,9 +401,37 @@ def main():
     Ground_marker.reset_to_coords((30,0,30))
     Graviton=gravity.Gravity_Environment()
     Weighted_blocks=[]
-    for each in Blocks:
-        Weighted_blocks.append(gravity.Mass_Objects(each,each.height*each.width*each.depth))
+    # for each in Blocks:
+    #     Weighted_blocks.append(gravity.Mass_Objects(each,each.height*each.width*each.depth))
         # print(each.height*each.width*each.depth)
+
+    Weighted_blocks.append(gravity.Mass_Objects(Blocks[Head]             ,0          ))
+    Weighted_blocks.append(gravity.Mass_Objects(Blocks[Torso]            ,5.7        ))
+    
+    Weighted_blocks.append(gravity.Mass_Objects(Blocks[Right_Shoulder]   ,0.6        ))
+    Weighted_blocks.append(gravity.Mass_Objects(Blocks[Left_Shoulder]    ,0.6        ))
+
+    Weighted_blocks.append(gravity.Mass_Objects(Blocks[Right_Elbow]      ,1.9        ))
+    Weighted_blocks.append(gravity.Mass_Objects(Blocks[Left_Elbow]       ,1.9        ))
+
+    Weighted_blocks.append(gravity.Mass_Objects(Blocks[Right_Wrist]      ,1.2        ))
+    Weighted_blocks.append(gravity.Mass_Objects(Blocks[Left_Wrist]       ,1.2        ))
+
+    Weighted_blocks.append(gravity.Mass_Objects(Blocks[Right_Pelvis]     ,1.2        ))
+    Weighted_blocks.append(gravity.Mass_Objects(Blocks[Left_Pelvis]      ,1.2        ))
+
+    Weighted_blocks.append(gravity.Mass_Objects(Blocks[Right_Thigh]      ,2.2        ))
+    Weighted_blocks.append(gravity.Mass_Objects(Blocks[Left_Thigh]       ,2.2        ))
+
+    Weighted_blocks.append(gravity.Mass_Objects(Blocks[Right_Calf]       ,1.1        ))
+    Weighted_blocks.append(gravity.Mass_Objects(Blocks[Left_Calf]        ,1.1        ))
+
+    Weighted_blocks.append(gravity.Mass_Objects(Blocks[Right_Ankle]      ,1.5        ))
+    Weighted_blocks.append(gravity.Mass_Objects(Blocks[Left_Ankle]       ,1.5        ))
+
+    Weighted_blocks.append(gravity.Mass_Objects(Blocks[Right_Foot]       ,2.35       ))
+    Weighted_blocks.append(gravity.Mass_Objects(Blocks[Left_Foot]        ,2.35       ))
+
     Graviton.register(Objects=Weighted_blocks,gravity=1)
 
 
