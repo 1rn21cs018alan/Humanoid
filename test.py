@@ -6,7 +6,7 @@ while True:
     if i>=0 and i<16:
         j=int(input("enter Motor Angle:"))
         data[i]=j
-        master_socketer.slow()
+        master_socketer.slow(data)
     elif i<0:
         master_socketer.end_wireless()
     elif i==100:

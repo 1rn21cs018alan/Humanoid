@@ -4,6 +4,7 @@ import struct
 import atexit
 import threading
 
+# HOST = '192.168.1.52'
 HOST = '127.0.0.1'
 PORT = 22343
 

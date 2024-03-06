@@ -15,7 +15,7 @@ def connect():
     global data_sock,flag_sock
     data_sock.settimeout(30)
     flag_sock.settimeout(30)
-    server_port=("127.0.0.1",37444) # use this to run on local machine
+    server_port=("127.0.0.3",37444) # use this to run on local machine
     #server_port=("192.168.1.1",37444) # use this if running on rasp
     
     data_sock.connect(server_port)

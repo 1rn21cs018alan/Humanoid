@@ -14,8 +14,8 @@ import gravity
 def unpack_data(packet):
     return struct.unpack('!16f', packet)
 
-# HOST = '127.0.0.1'  # Use localhost
-HOST = '192.168.1.52'  #for rpi
+HOST = '127.0.0.1'  # Use localhost
+# HOST = '192.168.1.52'  #for rpi
 PORT = 22343  # Choose the same port number as your sender program
 
 disable_Sticky=True
