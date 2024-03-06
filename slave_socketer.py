@@ -119,13 +119,9 @@ def recieve():
 
 #end of function Area
 
-# detail=('192.168.1.1', 12344)
 
-# server=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-# server.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
-# server.bind(detail)
-# server.settimeout(300)
-server_address = ("192.168.1.1", 37444)
+server_address = ("127.0.0.3", 37444) #for running locally
+# server_address = ("192.168.1.1", 37444) # for running on Raspberry-Pi
 
 # Create a socket object
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
